@@ -1,6 +1,6 @@
 # requirements.txt
-mysqlclient
-SQLAlchemy
+# mysqlclient
+# SQLAlchemy
 
 pandas
 streamlit
