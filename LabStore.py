@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from config import page_config
 
 
 class PlayStoreApp:
@@ -8,12 +9,7 @@ class PlayStoreApp:
         self.run_app()
 
     def run_app(self):
-        st.set_page_config(
-            layout="centered",
-            page_title="Experimental PlayStore",
-            page_icon="📱"
-        )
-        # self.setup()
+        page_config(title="Experimental LabStore", icon="🟡")
         self.main()
 
     @staticmethod

@@ -1,29 +1,16 @@
 import pandas as pd
 import streamlit as st
 
+from config import page_config
+
 
 class Graficador:
     def __init__(self):
         self.run_app()
 
     def run_app(self):
-        st.set_page_config(
-            layout="centered",
-            page_title="Graficador de Datos - Experimental PlayStore",
-            page_icon="📈"
-        )
-        self.setup()
+        page_config(title="Graficador de Datos", icon="📈")
         self.main()
-
-    @staticmethod
-    def setup():
-        st.markdown("""
-        <style>
-        .st-emotion-cache-zq5wmm.ezrtsby0 {
-            display: none;
-            }
-        </style>
-        """, unsafe_allow_html=True)
 
     @staticmethod
     def main():

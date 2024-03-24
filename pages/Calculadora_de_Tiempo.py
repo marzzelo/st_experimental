@@ -2,6 +2,9 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as com
 
+from config import page_config
+
+
 def compute_end_time(i_datetime, time_to_add):
     """
     Compute the end time of an event given the start time and the duration of the event.
@@ -15,8 +18,7 @@ def compute_end_time(i_datetime, time_to_add):
     end_dayofweek_number = int(end_datetime.dayofweek)
     days_of_week = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     end_dayofweek = days_of_week[end_dayofweek_number]
-    answer = (end_date, end_dayofweek, end_time)
-    return answer
+    return end_date, end_dayofweek, end_time
 
 
 class TimeCalculatorApp:
@@ -25,29 +27,9 @@ class TimeCalculatorApp:
     of the event. It also generates a table with the end times of a number of periods of 1 hour starting from the start
     time.
     """
-    def __init__(self):
-        st.set_page_config(
-            layout="centered",
-            page_title="Calculadora de Tiempo",
-            page_icon="⏰",
-            menu_items={
-                'Get Help': None,
-                'Report a bug': None,
-                'About': "# Lab Store\n### Laboratorio de Experimental\n## FAdeA "
-                         "S.A.\n[Marcelo Valdez](mailto:valdez@fadeasa.com.ar)"
-            }
-        )
 
-        st.markdown("""
-            <style>
-                .st-emotion-cache-cnbvxy.e1nzilvr5 > :nth-child(5) {
-                    display: none;
-                }
-                .st-emotion-cache-10trblm e1nzilvr1 {
-                    color: red !important;
-                }
-            </style>
-        """, unsafe_allow_html=True)
+    def __init__(self):
+        page_config(title="Calculadora de Tiempo", icon="⏰")
 
     def run(self):
         self.calculate_end_time()
