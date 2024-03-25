@@ -24,20 +24,24 @@ class Graficador:
             selected_files = st.multiselect("Seleccionar archivos para visualizar", options=file_names)
             if selected_files:
                 for file in files:
-                    if file.name in selected_files:
-                        if file.name.endswith(".csv"):
-                            df = pd.read_csv(file, sep="\t")
-                        else:
-                            df = pd.read_excel(file)
-                        st.markdown(f"### {file.name}")
-                        st.write(df)
-                        st.markdown(f"### Estadísticas Descriptivas para {file.name}")
-                        st.write(df.describe())
+                    try:
+                        if file.name in selected_files:
+                            if file.name.endswith(".csv"):
+                                df = pd.read_csv(file, sep="\t")
+                            else:
+                                df = pd.read_excel(file)
+                            st.markdown(f"### {file.name}")
+                            st.write(df)
+                            st.markdown(f"### Estadísticas Descriptivas para {file.name}")
+                            st.write(df.describe())
 
-                        headers = df.columns
-                        option = st.radio("Seleccione variable a graficar vs #muestra", headers.insert(0, "None"))
-                        if option != "None":
-                            st.line_chart(df[option])
+                            headers = df.columns
+                            option = st.radio("Seleccione variable a graficar vs #muestra", headers.insert(0, "None"))
+                            if option != "None":
+                                st.line_chart(df[option])
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
 
 
 if __name__ == "__main__":
