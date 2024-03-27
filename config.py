@@ -1,9 +1,11 @@
+from typing import Literal
+
 import streamlit as st
 
 
-def page_config(title, icon):
+def page_config(title, icon, layout: Literal["centered", "wide"] = "centered"):
     st.set_page_config(
-        layout="centered",
+        layout=layout,
         page_title=title,
         page_icon=icon,
         menu_items={
