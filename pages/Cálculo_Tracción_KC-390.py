@@ -68,17 +68,20 @@ class TractionCalculator:
                     rk_low = np.trunc(rk)
                     rk_high = np.ceil(rk)
 
-                    # index of rk_low in the table
-                    idx_low = self.rk_cr_table['RK'].sub(rk_low).gt(0).idxmin()
-                    idx_high = self.rk_cr_table['RK'].sub(rk_high).gt(0).idxmin()
+                    if rk_low == rk_high:
+                        idx = (np.abs(self.rk_cr_table['RK'] - rk_low)).idxmin()
+                        cr = self.rk_cr_table.loc[idx, 'CR']
+                    else:
+                        idx_low = self.rk_cr_table['RK'].sub(rk_low).gt(0).idxmin()
+                        idx_high = self.rk_cr_table['RK'].sub(rk_high).gt(0).idxmin()
 
-                    cr_low = self.rk_cr_table.loc[idx_low, 'CR']
-                    cr_high = self.rk_cr_table.loc[idx_high, 'CR']
-                    print(f'rk_low: {rk_low}, rk_high: {rk_high}')
-                    print(f'cr_low: {cr_low}, cr_high: {cr_high}')
+                        cr_low = self.rk_cr_table.loc[idx_low, 'CR']
+                        cr_high = self.rk_cr_table.loc[idx_high, 'CR']
+                        print(f'rk_low: {rk_low}, rk_high: {rk_high}')
+                        print(f'cr_low: {cr_low}, cr_high: {cr_high}')
 
-                    cr = cr_low + (cr_high - cr_low) / (rk_high - rk_low) * (rk - rk_low)
-                    print(f'cr: {cr}')
+                        cr = cr_low + (cr_high - cr_low) / (rk_high - rk_low) * (rk - rk_low)
+                        print(f'cr: {cr}')
 
                     # cr = self.rk_cr_table.loc[idx, 'CR']
                     traction_force = s * cr * 0.75  # kgf
