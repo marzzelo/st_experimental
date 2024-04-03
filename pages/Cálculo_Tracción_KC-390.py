@@ -87,7 +87,7 @@ class TractionCalculator:
                         'CARGA DE PRUEBA [kgf]': [f'{traction_force:.2f}', 'kgf'],
                         'CARGA DE PRUEBA [daN]': [f'{traction_force_dan:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN': [f'{cr:.2f}', 'kgf/mm²'],
-                        'DUREZA ROCKWELL': [f'{rk:.2f}', 'HRB'],
+                        'DUREZA ROCKWELL': [f'{rk:.2f}', 'HRC'],
                         'Diámetro en entalla': [f'{d:.2f}', 'mm'],
                         'Sección en entalla': [f'{s:.2f}', 'mm²']
                     }
