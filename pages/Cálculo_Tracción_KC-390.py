@@ -21,8 +21,8 @@ class TractionCalculator:
             layout="wide"
 
         )
-        self.rk_cr_table = pd.read_csv('resources/RK_CR.csv')
-        self.left_col, self.center_col, self.right_col = st.columns([1, 2, 2])
+        self.rk_cr_table = pd.read_csv('resources/RK_CR.csv', dtype={'RK': float, 'CR': float})
+        self.left_col, self.center_col, self.right_col = st.columns([1, 2, 1])
 
     def run(self):
         self.show_form()
@@ -52,7 +52,7 @@ class TractionCalculator:
 
                 d = col1.number_input(label="Diámetro de la probeta en la entalla", min_value=0.0,
                                       value=5.97, help="ver registro de instructivo de trabajo")
-                rk = col2.number_input(label="Valor de dureza", min_value=30, value=51, max_value=60, step=1,
+                rk = col2.number_input(label="Valor de dureza", min_value=30.0, value=51.0, max_value=60.0,
                                        help="ver registro de instructivo de trabajo")
 
                 st.session_state.d = d
@@ -61,13 +61,31 @@ class TractionCalculator:
                 if st.form_submit_button("Calcular"):
                     s = np.pi * d ** 2 / 4
                     # find the index of the closest value to cr in the table
-                    idx = (np.abs(self.rk_cr_table['RK'] - rk)).idxmin()
-                    cr = self.rk_cr_table.loc[idx, 'CR']
+                    # idx = (np.abs(self.rk_cr_table['RK'] - rk)).idxmin()
+
+                    # interpolate the value of CR from the table
+                    # truncate the value of RK
+                    rk_low = np.trunc(rk)
+                    rk_high = np.ceil(rk)
+
+                    # index of rk_low in the table
+                    idx_low = self.rk_cr_table['RK'].sub(rk_low).gt(0).idxmin()
+                    idx_high = self.rk_cr_table['RK'].sub(rk_high).gt(0).idxmin()
+
+                    cr_low = self.rk_cr_table.loc[idx_low, 'CR']
+                    cr_high = self.rk_cr_table.loc[idx_high, 'CR']
+                    print(f'rk_low: {rk_low}, rk_high: {rk_high}')
+                    print(f'cr_low: {cr_low}, cr_high: {cr_high}')
+
+                    cr = cr_low + (cr_high - cr_low) / (rk_high - rk_low) * (rk - rk_low)
+                    print(f'cr: {cr}')
+
+                    # cr = self.rk_cr_table.loc[idx, 'CR']
                     traction_force = s * cr * 0.75  # kgf
                     traction_force_dan = traction_force * 9.81 / 10  # daN
                     st.session_state.results = {
-                        'FUERZA DE ENSAYO [kgf]': [f'{traction_force:.2f}', 'kgf'],
-                        'FUERZA DE ENSAYO [daN]': [f'{traction_force_dan:.2f}', 'daN'],
+                        'CARGA DE PRUEBA [kgf]': [f'{traction_force:.2f}', 'kgf'],
+                        'CARGA DE PRUEBA [daN]': [f'{traction_force_dan:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN': [f'{cr:.2f}', 'kgf/mm²'],
                         'DUREZA ROCKWELL': [f'{rk:.2f}', 'HRB'],
                         'Diámetro en entalla': [f'{d:.2f}', 'mm'],
@@ -84,7 +102,6 @@ class TractionCalculator:
                            if x.name in [df.index[0], df.index[1]] else "" for i in x],
                 axis=1)
             st.table(stdf)
-
 
 
 if __name__ == "__main__":
