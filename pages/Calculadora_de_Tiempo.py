@@ -43,7 +43,8 @@ class TimeCalculatorApp:
         if 'table' in st.session_state:
             self.show_table()
 
-    def calculate_end_time(self):
+    @staticmethod
+    def calculate_end_time():
         # https://lottie.host/embed/1342ec1b-cde3-4fd6-bc6b-edc51ec6c36e/ptMYNjPv5j.json
         com.iframe("https://lottie.host/embed/1342ec1b-cde3-4fd6-bc6b-edc51ec6c36e/ptMYNjPv5j.json", width=200,
                    height=200)
@@ -76,13 +77,15 @@ class TimeCalculatorApp:
                 if 'table' in st.session_state:
                     del st.session_state['table']
 
-    def show_btn_table(self):
+    @staticmethod
+    def show_btn_table():
         st.markdown(st.session_state.answer, unsafe_allow_html=True)
         if 'btn_table' not in st.session_state:
             btn_table = st.button("Generar tabla de tiempos",
                                   on_click=lambda: setattr(st.session_state, 'btn_table', True))
 
-    def create_table(self):
+    @staticmethod
+    def create_table():
         st.markdown('<h4 style="color:red">Tabla de Tiempos</h4>', unsafe_allow_html=True)
         st.markdown('<p>Ingrese cantidad de periodos de 1 hora a calcular a partir de la hora inicial.</p>',
                     unsafe_allow_html=True)
@@ -109,7 +112,8 @@ class TimeCalculatorApp:
 
                 st.session_state.table = df
 
-    def show_table(self):
+    @staticmethod
+    def show_table():
         st.dataframe(st.session_state.table, use_container_width=True, hide_index=True)
 
 

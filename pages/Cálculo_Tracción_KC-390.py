@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as com
-from PIL import Image
 
 from config import page_config
 

@@ -1,4 +1,3 @@
-import pandas as pd
 import streamlit as st
 from config import page_config
 
@@ -24,17 +23,17 @@ class PlayStoreApp:
 
     @staticmethod
     def main():
-        st.markdown('# Experimental LabStore')
-        st.markdown("---")
-        st.markdown('<p>En esta sección se presentan aplicaciones desarrolladas por el <b>Laboratorio de '
-                    'Experimental</b>. </p>', unsafe_allow_html=True)
-        st.markdown('<p>Seleccione la aplicación deseada desde el menú lateral.</p>', unsafe_allow_html=True)
-        st.markdown("<p>Si desea acceder a la página web de <b>Experimental</b>, haga click en el siguiente "
-                    "enlace:</p>", unsafe_allow_html=True)
-        st.markdown('Sitio de **[Experimental Web](http://experimental01)**', unsafe_allow_html=True)
+        st.markdown('# Laboratorio de Experimental')
         st.markdown("---")
         st.markdown('<h3>Contacto:</h3>', unsafe_allow_html=True)
         st.markdown('Correo: **[valdez@fadeasa.com.ar](mailto:valdez@fadeasa.com.ar)**', unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            st.page_link('pages/Cálculo_Tracción_KC-390.py', label='Tracción KC-390', icon="🔧", help=None, disabled=False, use_container_width=True)
+        with col2:
+            st.page_link('pages/Calculadora_de_Tiempo.py', label='Tiempo Final', icon="⏰", help=None, disabled=False, use_container_width=True)
+        with col3:
+            st.page_link('Lab_Store.py', label='Frecuencia y Ciclos', icon="🔄", help=None, disabled=False, use_container_width=True)
 
 
 if __name__ == "__main__":
