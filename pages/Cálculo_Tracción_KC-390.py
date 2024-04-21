@@ -14,7 +14,7 @@ class TractionCalculator:
 
     def __init__(self):
         page_config(
-            title="Cálculo Fuerza de Tracción KC-390",
+            title="Fuerza de Tracción",
             icon="🚀",
             layout="wide"
 

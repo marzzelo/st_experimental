@@ -25,3 +25,12 @@ def page_config(title, icon, layout: Literal["centered", "wide"] = "centered"):
             }
         </style>
     """, unsafe_allow_html=True)
+
+    with st.sidebar:
+        st.markdown(f"## {title}")
+        st.markdown("---")
+        st.page_link("Lab_Store.py", label="Lab Store", icon="🟡")
+        st.markdown("---")
+        st.page_link("pages/Calculadora_de_Tiempo.py", label="Tiempo Final", icon="⏰")
+        st.page_link("pages/Calculadora_FTC.py", label="Frecuencia y Ciclos", icon="♾️")
+        st.page_link("pages/Cálculo_Tracción_KC-390.py", label="Tracción KC-390", icon="🔧")
