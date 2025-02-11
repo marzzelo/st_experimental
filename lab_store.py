@@ -47,7 +47,7 @@ class PlayStoreApp:
         
 
 
-if __name__ == "__main__":
-    PlayStoreApp()
+# if __name__ == "__main__":
+#     PlayStoreApp()
 
 # run with: python -m streamlit run .\lab.py
