@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import numpy as np
 
 from config import page_config
 
@@ -30,6 +32,8 @@ class PlayStoreApp:
         with col1:
             with st.container(height=60, border=True):
                 st.page_link('pages/Cálculo_Tracción_KC-390.py', label='Tracción KC-390', icon="🔧", help=None, disabled=False, use_container_width=True)
+            with st.container(height=60, border=True):
+                st.page_link('pages/Data_Explorer.py', label='Explorador de Datos', icon="📊", help=None, disabled=False, use_container_width=True)
         with col2:
             with st.container(height=60, border=True):
                 st.page_link('pages/Calculadora_de_Tiempo.py', label='Tiempo Final', icon="⏰", help=None, disabled=False, use_container_width=True)
@@ -40,7 +44,15 @@ class PlayStoreApp:
         st.markdown("---")
         st.markdown('<h3>Contacto:</h3>', unsafe_allow_html=True)
         st.markdown('Correo: **[valdez@fadeasa.com.ar](mailto:valdez@fadeasa.com.ar)**', unsafe_allow_html=True)
+        
+        if st.checkbox('Mostrar tabla'):
+            dataframe = pd.DataFrame(
+            np.random.randn(10, 20),
+            columns=('col %d' % i for i in range(20)))
+            st.table(dataframe)
 
 
 if __name__ == "__main__":
     PlayStoreApp()
+
+# run with: python -m streamlit run .\lab.py

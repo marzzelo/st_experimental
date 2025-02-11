@@ -43,7 +43,7 @@ class TractionCalculator:
         with self.center_col:
             st.markdown('<h4 style="color:red">Calculadora de Fuerza de Tracción de Ensayo</h4>',
                         unsafe_allow_html=True)
-            st.markdown('<p>Ingrese los datos soicitados para calcular la fuerza de tracción de ensayo.</p>',
+            st.markdown('<p>Ingrese los datos solicitados para calcular la fuerza de tracción de ensayo.</p>',
                         unsafe_allow_html=True)
             with st.form(key='form_kc390'):
                 col1, col2 = st.columns(2)
