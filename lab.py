@@ -45,11 +45,6 @@ class PlayStoreApp:
         st.markdown('<h3>Contacto:</h3>', unsafe_allow_html=True)
         st.markdown('Correo: **[valdez@fadeasa.com.ar](mailto:valdez@fadeasa.com.ar)**', unsafe_allow_html=True)
         
-        if st.checkbox('Mostrar tabla'):
-            dataframe = pd.DataFrame(
-            np.random.randn(10, 20),
-            columns=('col %d' % i for i in range(20)))
-            st.table(dataframe)
 
 
 if __name__ == "__main__":

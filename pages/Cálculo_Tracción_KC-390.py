@@ -33,6 +33,12 @@ class TractionCalculator:
                 st.markdown('<p style="color:gray">Ingrese los datos solicitados para calcular la fuerza de tracción '
                             'de ensayo.</p>',
                             unsafe_allow_html=True)
+                
+        with self.right_col:
+            if st.checkbox('Mostrar tabla RK-CR'):
+                dataframe = self.rk_cr_table
+                st.dataframe(dataframe.style.format("{:.0f}").applymap(lambda x: 'color: yellow'), hide_index=True, use_container_width=True)
+
 
     def show_form(self):
         img_path = 'resources/probeta.png'
@@ -87,6 +93,8 @@ class TractionCalculator:
                     st.session_state.results = {
                         'CARGA DE PRUEBA [kgf]': [f'{traction_force:.2f}', 'kgf'],
                         'CARGA DE PRUEBA [daN]': [f'{traction_force_dan:.2f}', 'daN'],
+                        'LÍMITE INFERIOR -10% [daN]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
+                        'LÍMITE SUPERIOR +10% [daN]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN': [f'{cr:.2f}', 'kgf/mm²'],
                         'DUREZA ROCKWELL': [f'{rk:.2f}', 'HRC'],
                         'Diámetro en entalla': [f'{d:.2f}', 'mm'],
@@ -99,7 +107,7 @@ class TractionCalculator:
 
             df = pd.DataFrame(st.session_state.results, index=['Magnitud', 'Unidad']).T
             stdf = df.style.apply(
-                lambda x: ["background: gray; color: black; font-weight: bold; font-size: 1.5em"
+                lambda x: ["font-weight: bold; font-size: 1.2em"
                            if x.name in [df.index[0], df.index[1]] else "" for i in x],
                 axis=1)
             st.table(stdf)
