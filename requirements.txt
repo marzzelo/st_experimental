@@ -2,12 +2,12 @@
 # mysqlclient
 # SQLAlchemy
 
-pandas~=2.2.1
+pandas
 streamlit
-numpy~=1.26.4
+numpy
 requests
 beautifulsoup4
 matplotlib
 openai
 openpyxl
-pillow~=10.2.0
+pillow

@@ -1,0 +1,28 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "33572978aef9459213acb4eeb012ead63009a8dd08a33c83d420f77b195e625f"
+        },
+        "pipfile-spec": 6,
+        "requires": {},
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "beautifulsoup4": "*",
+        "matplotlib": "*",
+        "numpy": "*",
+        "openai": "*",
+        "openpyxl": "*",
+        "pandas": "*",
+        "pillow": "*",
+        "requests": "*",
+        "streamlit": "*"
+    },
+    "develop": {}
+}

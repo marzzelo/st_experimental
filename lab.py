@@ -14,16 +14,6 @@ class PlayStoreApp:
         page_config(title="Experimental LabStore", icon="🟡")
         self.main()
 
-    # @staticmethod
-    # def setup():
-    #     st.markdown("""
-    #     <style>
-    #     .st-emotion-cache-zq5wmm.ezrtsby0 {
-    #         display: none;
-    #         }
-    #     </style>
-    #     """, unsafe_allow_html=True)
-
     @staticmethod
     def main():
         st.markdown('# Laboratorio de Experimental')

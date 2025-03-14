@@ -15,6 +15,11 @@ To install Experimental LabStore, follow these steps:
 3. Install necessary packages: `pip install -r requirements.txt`
 
 ## Usage
-1. Start the server: `python app.py`
+1. Start the server: `python -m streamlit run .\lab.py`
 2. Open your web browser and navigate to `http://localhost:5000` 
 3. You can now interact with the system, add inventory items, track usage, and automate restocking routines. For more details, please refer to the user manual included in the project documentation.
+
+
+### Para solucionar error "Error on ghost text request: FetchError: The pending stream has been canceled (caused by: self signed certificate in certificate chain)" en Github Copilot: 
+$env:NODE_TLS_REJECT_UNAUTHORIZED="0"
+code .

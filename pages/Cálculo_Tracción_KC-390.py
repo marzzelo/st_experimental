@@ -22,28 +22,64 @@ class TractionCalculator:
         self.rk_cr_table = pd.read_csv('resources/RK_CR.csv', dtype={'RK': float, 'CR': float})
         self.left_col, self.center_col, self.right_col = st.columns([1, 2, 1])
 
+
     def run(self):
+        # Show RK-CR table                
+        self.show_rk_cr_table()
+        
+        # Mostrar el formulario principal (diámetro y dureza)
         self.show_form()
 
+        # Si ya se calculó la fuerza de tracción, mostrar los resultados. En caso contrario, mostrar las instrucciones.
         if 'results' in st.session_state:
             self.show_results()
         else:
-            with self.center_col:
-                st.markdown('<h4 style="color:gray">Resultados</h4>', unsafe_allow_html=True)
-                st.markdown('<p style="color:gray">Ingrese los datos solicitados para calcular la fuerza de tracción '
+            self.show_instructions()
+        
+        
+
+    def show_rk_cr_table(self):
+        with self.right_col:
+            dataframe = self.rk_cr_table
+            target = st.session_state.get('rk', None)
+            if target is not None:
+                # Identificar la fila con RK menor o igual al target
+                lower_df = dataframe[dataframe['RK'] <= target]
+                # Identificar la fila con RK mayor o igual al target
+                upper_df = dataframe[dataframe['RK'] >= target]
+                target_idxs = set()
+                if not lower_df.empty:
+                    lower_idx = lower_df['RK'].idxmax()
+                    target_idxs.add(lower_idx)
+                if not upper_df.empty:
+                    upper_idx = upper_df['RK'].idxmin()
+                    target_idxs.add(upper_idx)
+
+                def highlight_row(row):
+                    if row.name in target_idxs:
+                        return ['color: yellow; background-color: #333377'] * len(row)
+                    else:
+                        return [''] * len(row)
+
+                styled_df = dataframe.style.apply(highlight_row, axis=1).format("{:.0f}")
+                st.dataframe(styled_df, hide_index=True, use_container_width=True)
+            else:
+                st.dataframe(dataframe.style.format("{:.0f}"), hide_index=True, use_container_width=True)
+
+
+    def show_instructions(self):
+        with self.center_col:
+            st.markdown('<h4 style="color:gray">Instrucciones</h4>', unsafe_allow_html=True)
+            st.markdown('<p style="color:gray">Ingrese los datos solicitados de diámetro y dureza para calcular la fuerza de tracción '
                             'de ensayo.</p>',
                             unsafe_allow_html=True)
-                
-        with self.right_col:
-            if st.checkbox('Mostrar tabla RK-CR'):
-                dataframe = self.rk_cr_table
-                st.dataframe(dataframe.style.format("{:.0f}").applymap(lambda x: 'color: yellow'), hide_index=True, use_container_width=True)
 
 
     def show_form(self):
-        img_path = 'resources/probeta.png'
-
+        
+        # Mostrar la imagen ilustrativa en la columna de la izquierda
         with self.left_col:
+            img_path = 'resources/probeta.png'
             st.image(img_path, width=200)
 
         with self.center_col:
@@ -62,7 +98,8 @@ class TractionCalculator:
                 st.session_state.d = d
                 st.session_state.rk = rk
 
-                if st.form_submit_button("Calcular"):
+                if st.form_submit_button("Calcular Carga de Prueba", type="primary"):
+                   
                     s = np.pi * d ** 2 / 4
                     # find the index of the closest value to cr in the table
                     # idx = (np.abs(self.rk_cr_table['RK'] - rk)).idxmin()
@@ -96,10 +133,12 @@ class TractionCalculator:
                         'LÍMITE INFERIOR -10% [daN]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
                         'LÍMITE SUPERIOR +10% [daN]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN': [f'{cr:.2f}', 'kgf/mm²'],
-                        'DUREZA ROCKWELL': [f'{rk:.2f}', 'HRC'],
+                        'DUREZA ROCKWELL [Cr]': [f'{rk:.2f}', 'HRC'],
                         'Diámetro en entalla': [f'{d:.2f}', 'mm'],
-                        'Sección en entalla': [f'{s:.2f}', 'mm²']
+                        'Sección en entalla [S]': [f'{s:.2f}', 'mm²']
                     }
+                    st.rerun()
+
 
     def show_results(self):
         with self.center_col:
@@ -107,10 +146,13 @@ class TractionCalculator:
 
             df = pd.DataFrame(st.session_state.results, index=['Magnitud', 'Unidad']).T
             stdf = df.style.apply(
-                lambda x: ["font-weight: bold; font-size: 1.2em"
-                           if x.name in [df.index[0], df.index[1]] else "" for i in x],
+                lambda x: ["font-weight: bold; font-size: 1.2em; color: yellow;"
+                           if x.name in [df.index[1]] else "" for i in x],
                 axis=1)
             st.table(stdf)
+            
+            
+            st.markdown("<p>La carga fue calculada utilizando la fórmula: <br><code>Fuerza de Tracción = S * Cr * 0.75</code></p>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
