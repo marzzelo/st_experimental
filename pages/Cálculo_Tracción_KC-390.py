@@ -40,6 +40,7 @@ class TractionCalculator:
 
     def show_rk_cr_table(self):
         with self.right_col:
+            # titulo
             st.markdown('<h4 style="color: green">Tabla Dureza-Resistencia</h4>', unsafe_allow_html=True)
             dataframe = self.rk_cr_table
             target = st.session_state.get('rk', None)
