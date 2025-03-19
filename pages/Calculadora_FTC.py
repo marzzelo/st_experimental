@@ -29,8 +29,8 @@ class FTCCalc:
         #     st.session_state.result_time = 1.0
         #     st.session_state.result_cycles = 1
         #     st.session_state.result_icycles = 0
-        result = ""
-        units = ""
+        result = None
+        units = None
 
         with st.form(key='form1'):
             st.subheader("Calculadora de Frecuencia, Ciclos, Tiempo")
