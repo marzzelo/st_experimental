@@ -129,6 +129,7 @@ class TractionCalculator:
                     # cr = self.rk_cr_table.loc[idx, 'CR']
                     traction_force = s * cr * 0.75  # kgf
                     traction_force_dan = traction_force * 9.81 / 10  # daN
+                    
                     st.session_state.results = {
                         'CARGA DE PRUEBA [kgf]': [f'{traction_force:.2f}', 'kgf'],
                         'CARGA DE PRUEBA [daN]': [f'{traction_force_dan:.2f}', 'daN'],
@@ -152,9 +153,11 @@ class TractionCalculator:
                            if x.name in [df.index[1]] else "" for i in x],
                 axis=1)
             st.table(stdf)
-            
-            
-            st.markdown("<p>La carga fue calculada utilizando la fórmula: <br><code>Fuerza de Tracción = S * Cr * 0.75</code></p>", unsafe_allow_html=True)
+            with self.center_col:
+                st.markdown('''
+                :small[Fórmula utilizada para el cálculo de la Fuerza:]  
+                $ F = S \\times Cr \\times 0.75  $''', unsafe_allow_html=True)
+
 
 
 if __name__ == "__main__":
