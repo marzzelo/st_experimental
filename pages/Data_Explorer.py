@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from sqlalchemy import Null
 import streamlit as st
 import matplotlib.pyplot as plt
 
@@ -152,7 +151,7 @@ class DataExplorer:
             if save_data:
                 saved_message = st.empty()    
                 
-            reset_limits = st.checkbox("Reset Limits", key="chk_reset")                                               
+            st.checkbox("Reset Limits", key="chk_reset")                                               
 
             submitted = st.form_submit_button("Graficar")
             if submitted:

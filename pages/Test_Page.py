@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from config import page_config
-from utils import ss_init, ss_set
+from utils import ss_get, ss_set
 
 
 
@@ -12,9 +12,9 @@ class TestPage:
     def __init__(self):
         # use a frequency icon
         page_config(title="Test Page", icon="📊", layout='wide')
-        ss_init('cnt1', 0)
-        ss_init('cnt2', 0)
-        ss_init('text', "Hello World (CHANGE this!)")
+        ss_set('cnt1', 0)
+        ss_set('cnt2', 0)
+        ss_set('text', "Hello World (CHANGE this!)")
         self.layout()
         
         
