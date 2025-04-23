@@ -110,7 +110,7 @@ class DataExplorer:
             others = [col for col in data.columns if col != x_col and col.lower() not in NOPLOT_COLS]
             y_vals = pd.concat([data[col].dropna() for col in others])
             y_lower_val = ss_get('y_lower', float(y_vals.min()))
-            y_upper_val = ss_get('y_upper', float(y_vals.max()))
+            y_upper_val = ss_get('y_upper', float(y_vals.max()))  
             
             print(f"session state after get: {st.session_state}")
             print('x_lower_val:', x_lower_val)

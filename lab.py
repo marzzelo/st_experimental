@@ -27,6 +27,8 @@ class PlayStoreApp:
         with col2:
             with st.container(height=60, border=True):
                 st.page_link('pages/Calculadora_de_Tiempo.py', label='Tiempo Final', icon="⏰", help=None, disabled=False, use_container_width=True)
+            with st.container(height=60, border=True):
+                st.page_link('pages/Calibraciones.py', label='Calibraciones', icon="⚖️", help=None, disabled=False, use_container_width=True)
         with col3:
             with st.container(height=60, border=True):
                 st.page_link('pages/Calculadora_FTC.py', label='Frecuencia y Ciclos', icon="♾️", help=None, disabled=False, use_container_width=True)
