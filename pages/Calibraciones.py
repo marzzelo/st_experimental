@@ -62,7 +62,7 @@ if uploaded_file is not None:
     with col_fecha:
         fecha_default = fecha_param()
         try:
-            fecha_default_dt = date.strptime(fecha_default, '%d/%m/%Y')
+            fecha_default_dt = date.strptime(fecha_default, '%d/%m/%Y') # type: ignore
         except Exception:
             fecha_default_dt = date.today()
         fecha_calibracion = st.date_input('Fecha de Calibración', value=fecha_default_dt)
@@ -94,7 +94,9 @@ if uploaded_file is not None:
         # Guardar todos los parámetros en la URL
         set_url_params(denominaciones, denominacion_patron, fecha_calibracion_str, unidad_fuerza)
         # Graficar para cada celda
+        st.divider()
         for idx in celda_indices:
+            st.title(f'Calibración para {denominaciones[idx]}')
             pat_0 = f'PAT{idx}_0'
             dut_0 = f'DUT{idx}_0'
             pat_r = f'PAT{idx}_R'
@@ -122,7 +124,20 @@ if uploaded_file is not None:
             st.pyplot(fig1)
             buf1 = io.BytesIO()
             fig1.savefig(buf1, format="png")
-            st.download_button(f"Descargar gráfico de error absoluto para {idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
+            st.download_button(f"Descargar gráfico de error absoluto celda {idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
+            # Tabla profesional para error absoluto
+            tabla_abs = pd.DataFrame({
+                f'PAT(L) [{unidad_fuerza}]': df[pat_0],
+                f'DUT(L) [{unidad_fuerza}]': df[dut_0],
+                f'Err(L) [{unidad_fuerza}]': abs_error_0,
+                f'PAT(U) [{unidad_fuerza}]': df[pat_r],
+                f'DUT(U) [{unidad_fuerza}]': df[dut_r],
+                f'Err(U) [{unidad_fuerza}]': abs_error_r
+            })
+            st.markdown(f'**Tabla de Error Absoluto para {denominaciones[idx]}**')
+            st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
+            st.info(f'Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
+            st.divider()
             # Gráfico de error relativo
             fig2, ax2 = plt.subplots(figsize=(8, 4))
             ax2.scatter(df[pat_0], rel_error_0 * 100, label="Carga (muestras)", color='tab:blue', s=60, marker='o', zorder=3)
@@ -151,3 +166,16 @@ if uploaded_file is not None:
             buf2 = io.BytesIO()
             fig2.savefig(buf2, format="png")
             st.download_button(f"Descargar gráfico de error relativo para {idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
+            # Tabla profesional para error relativo
+            tabla_rel = pd.DataFrame({
+                f'PAT(L) [{unidad_fuerza}]': df[pat_0],
+                f'DUT(L) [{unidad_fuerza}]': df[dut_0],
+                f'Err(L) [%]': rel_error_0 * 100,
+                f'PAT(U) [{unidad_fuerza}]': df[pat_r],
+                f'DUT(U) [{unidad_fuerza}]': df[dut_r],
+                f'Err(U) [%]': rel_error_r * 100
+            })
+            st.markdown(f'**Tabla de Error Relativo para {denominaciones[idx]}**')
+            st.dataframe(tabla_rel.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True) # type: ignore
+            st.info(f'Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
+            st.divider()
