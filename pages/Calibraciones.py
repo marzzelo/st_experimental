@@ -31,13 +31,23 @@ def set_url_params(denominaciones, denominacion_patron, fecha_calibracion_str, u
 
 
 st.title("Calibraciones de Celdas de Carga")
-st.markdown("""
-Sube un archivo Excel (*.xlsx) con las siguientes columnas obligatorias:
-- PAT1_0 (Patrón durante carga)
-- DUT1_0 (DUT durante carga)
-- PAT1_R (Patrón durante descarga)
-- DUT1_R (DUT durante descarga)
-""")
+with st.expander("I N S T R U C C I O N E S", expanded=False):
+    st.markdown("""
+    ### Formato del archivo xls de entrada
+    **Columnas obligatorias para una celda:**
+    - `PAT1_0` (Patrón durante carga)
+    - `DUT1_0` (DUT durante carga)
+    - `PAT1_R` (Patrón durante descarga)
+    - `DUT1_R` (DUT durante descarga)
+
+    **Formato para calibraciones de múltiples celdas:**
+    - Para cada celda adicional, agregue columnas siguiendo el patrón:
+        - `PATn_0`, `DUTn_0`, `PATn_R`, `DUTn_R` (donde n = 2, 3, ...)
+    - Ejemplo para tres celdas:
+        - `PAT1_0`, `DUT1_0`, `PAT1_R`, `DUT1_R`
+        - `PAT2_0`, `DUT2_0`, `PAT2_R`, `DUT2_R`
+        - `PAT3_0`, `DUT3_R`, `PAT3_R`, `DUT3_R`
+    """)
 
 uploaded_file = st.file_uploader("Selecciona un archivo Excel de calibración", type=["xlsx"])
 
@@ -103,7 +113,7 @@ if uploaded_file is not None:
             ax1.bar(x + width/2, abs_error_r, width=width, label="Descarga", color='tab:orange', alpha=0.7)
             ax1.set_xlabel(f"Patrón ({unidad_fuerza})")
             ax1.set_ylabel(f"Error absoluto ({unidad_fuerza})")
-            ax1.set_title(f"Error Absoluto para la celda {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
+            ax1.set_title(f"Error Absoluto para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
             ax1.set_xticks(x)
             ax1.legend()
             ax1.grid()
@@ -112,7 +122,7 @@ if uploaded_file is not None:
             st.pyplot(fig1)
             buf1 = io.BytesIO()
             fig1.savefig(buf1, format="png")
-            st.download_button(f"Descargar gráfico de error absoluto celda {idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
+            st.download_button(f"Descargar gráfico de error absoluto para {idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
             # Gráfico de error relativo
             fig2, ax2 = plt.subplots(figsize=(8, 4))
             ax2.scatter(df[pat_0], rel_error_0 * 100, label="Carga (muestras)", color='tab:blue', s=60, marker='o', zorder=3)
@@ -129,7 +139,7 @@ if uploaded_file is not None:
                 ax2.plot(x_descarga, poly_descarga(x_descarga), color='tab:orange', linestyle='--', label='Ajuste descarga (grado 3)', zorder=2)
             ax2.set_xlabel(f"Patrón ({unidad_fuerza})")
             ax2.set_ylabel("Error relativo (%)")
-            ax2.set_title(f"Error Relativo para la celda {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
+            ax2.set_title(f"Error Relativo para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
             fig2.text(0.5, 0.91, f"Fecha de Calibración: {fecha_calibracion_str}", ha='center', fontsize=10, color='gray')
             ax2.axhline(0, color='black', linewidth=1)
             ax2.legend()
@@ -140,4 +150,4 @@ if uploaded_file is not None:
             st.pyplot(fig2)
             buf2 = io.BytesIO()
             fig2.savefig(buf2, format="png")
-            st.download_button(f"Descargar gráfico de error relativo celda {idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
+            st.download_button(f"Descargar gráfico de error relativo para {idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
