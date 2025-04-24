@@ -136,7 +136,7 @@ if uploaded_file is not None:
             })
             st.markdown(f'**Tabla de Error Absoluto para {denominaciones[idx]}**')
             st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
-            st.info(f'Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
+            st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
             st.divider()
             # Gráfico de error relativo
             fig2, ax2 = plt.subplots(figsize=(8, 4))
@@ -170,12 +170,12 @@ if uploaded_file is not None:
             tabla_rel = pd.DataFrame({
                 f'PAT(L) [{unidad_fuerza}]': df[pat_0],
                 f'DUT(L) [{unidad_fuerza}]': df[dut_0],
-                f'Err(L) [%]': rel_error_0 * 100,
+                'Err(L) [%]': rel_error_0 * 100,
                 f'PAT(U) [{unidad_fuerza}]': df[pat_r],
                 f'DUT(U) [{unidad_fuerza}]': df[dut_r],
-                f'Err(U) [%]': rel_error_r * 100
+                'Err(U) [%]': rel_error_r * 100
             })
             st.markdown(f'**Tabla de Error Relativo para {denominaciones[idx]}**')
             st.dataframe(tabla_rel.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True) # type: ignore
-            st.info(f'Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
+            st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
             st.divider()
