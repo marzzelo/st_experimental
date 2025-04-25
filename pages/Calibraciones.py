@@ -6,7 +6,10 @@ from datetime import date
 import numpy as np
 
 
-st.set_page_config(page_title="Calibraciones", page_icon="⚖️")
+st.set_page_config(
+    page_title="Calibraciones", 
+    page_icon="⚖️", 
+)
 
 # Leer y escribir parámetros de la URL usando la nueva API
 params = st.query_params
@@ -135,7 +138,7 @@ if uploaded_file is not None:
                 f'Err(U) [{unidad_fuerza}]': abs_error_r
             })
             st.markdown(f'**Tabla de Error Absoluto para {denominaciones[idx]}**')
-            st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
+            st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True) # type: ignore
             st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
             st.divider()
             # Gráfico de error relativo
