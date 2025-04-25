@@ -54,7 +54,8 @@ class CalibrationApp:
             - `DUT1_0` (DUT durante carga)
             - `PAT1_R` (Patrón durante descarga)
             - `DUT1_R` (DUT durante descarga)
-            **Formato para calibraciones de múltiples celdas:**
+            
+            ### Formato para calibraciones de múltiples celdas:
             - Para cada celda adicional, agregue columnas siguiendo el patrón:
                 - `PATn_0`, `DUTn_0`, `PATn_R`, `DUTn_R` (donde n = 2, 3, ...)
             - Ejemplo para tres celdas:
