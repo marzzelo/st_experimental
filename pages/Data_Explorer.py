@@ -29,19 +29,10 @@ class DataExplorer:
         if uploaded_file is not None:               
             data_file = uploaded_file
             self.data_file_name = data_file.name
-        else:
-            st.html(f'<div>Using default file: <span style="color: green; padding-left: 8px;">{default_file_name}</span></div>')
-            data_file = default_file_name
-            self.data_file_name = data_file
-            
-        raw_data = pd.read_csv(data_file, sep=None, engine='python')  
-        self.data = raw_data.select_dtypes(include=[np.number])
-        
-        self.plot_data()
-                        
-        self.show_data_stats()
-        
-        return
+            raw_data = pd.read_csv(data_file, sep=None, engine='python')  
+            self.data = raw_data.select_dtypes(include=[np.number])
+            self.plot_data()
+            self.show_data_stats()
           
                
     def show_data_stats(self):       
