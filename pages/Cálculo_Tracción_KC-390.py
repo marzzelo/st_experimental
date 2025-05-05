@@ -20,7 +20,7 @@ class TractionCalculator:
 
         )
         self.rk_cr_table = pd.read_csv('resources/RK_CR.csv', dtype={'RK': float, 'CR': float})
-        self.left_col, self.center_col, self.right_col = st.columns([1, 2, 1])
+        self.left_col, self.center_col, self.right_col = st.columns([8, 22, 8])
 
 
     def run(self):
@@ -41,7 +41,7 @@ class TractionCalculator:
     def show_rk_cr_table(self):
         with self.right_col:
             # titulo
-            st.markdown('<h4 style="color: green">Tabla Dureza-Resistencia</h4>', unsafe_allow_html=True)
+            st.markdown('<div style="color: lightgreen; text-align: center;">Tabla Dureza-Resistencia</div>', unsafe_allow_html=True)
             dataframe = self.rk_cr_table
             target = st.session_state.get('rk', None)
             if target is not None:
@@ -134,8 +134,8 @@ class TractionCalculator:
                         'CARGA DE PRUEBA, :blue[$F$]': [f'{traction_force:.2f}', 'kgf'],
                         
                         '\nCARGA DE PRUEBA, :blue[$F$]': [f'{traction_force_dan:.2f}', 'daN'],
-                        'LÍMITE INFERIOR -10%, :blue[$F_l$]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
-                        'LÍMITE SUPERIOR +10%, :blue[$F_u$]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
+                        'LÍMITE INFERIOR (0.9)F, :blue[$F_l$]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
+                        'LÍMITE SUPERIOR (1.1)F, :blue[$F_u$]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN, :blue[$\\sigma_R$]': [f'{cr:.2f}', 'kgf/mm²'],
                         'DUREZA ROCKWELL, :blue[**HRC**]': [f'{rk:.2f}', ''],
                         'Diámetro en entalla, :blue[$\\phi_0$]': [f'{d:.2f}', 'mm'],
