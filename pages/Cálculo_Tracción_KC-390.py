@@ -131,14 +131,15 @@ class TractionCalculator:
                     traction_force_dan = traction_force * 9.81 / 10  # daN
                     
                     st.session_state.results = {
-                        'CARGA DE PRUEBA [kgf]': [f'{traction_force:.2f}', 'kgf'],
-                        'CARGA DE PRUEBA [daN]': [f'{traction_force_dan:.2f}', 'daN'],
-                        'LÍMITE INFERIOR -10% [daN]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
-                        'LÍMITE SUPERIOR +10% [daN]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
-                        'RESISTENCIA TRACCIÓN': [f'{cr:.2f}', 'kgf/mm²'],
-                        'DUREZA ROCKWELL [Cr]': [f'{rk:.2f}', 'HRC'],
-                        'Diámetro en entalla': [f'{d:.2f}', 'mm'],
-                        'Sección en entalla [S]': [f'{s:.2f}', 'mm²']
+                        'CARGA DE PRUEBA, :blue[$F$]': [f'{traction_force:.2f}', 'kgf'],
+                        
+                        '\nCARGA DE PRUEBA, :blue[$F$]': [f'{traction_force_dan:.2f}', 'daN'],
+                        'LÍMITE INFERIOR -10%, :blue[$F_l$]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
+                        'LÍMITE SUPERIOR +10%, :blue[$F_u$]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
+                        'RESISTENCIA TRACCIÓN, :blue[$\\sigma_R$]': [f'{cr:.2f}', 'kgf/mm²'],
+                        'DUREZA ROCKWELL, :blue[**HRC**]': [f'{rk:.2f}', ''],
+                        'Diámetro en entalla, :blue[$\\phi_0$]': [f'{d:.2f}', 'mm'],
+                        'Sección inicial de entalla, :blue[$S_0$]': [f'{s:.2f}', 'mm²']
                     }
                     st.rerun()
 
@@ -154,9 +155,10 @@ class TractionCalculator:
                 axis=1)
             st.table(stdf)
             with self.center_col:
-                st.markdown('''
-                :small[Fórmula utilizada para el cálculo de la Fuerza:]  
-                $ F = S \\times Cr \\times 0.75  $''', unsafe_allow_html=True)
+                st.markdown('<br>', unsafe_allow_html=True)
+                st.info('''
+                :small[*Fórmula utilizada para el cálculo de la Fuerza:*]  
+                :blue[$ F = \\sigma_R \\times S_0 \\times 0.75  $]''')
 
 
 
