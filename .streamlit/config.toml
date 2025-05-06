@@ -3,3 +3,10 @@
 # displayed.
 # Default: true
 showSidebarNavigation = false
+
+[theme]
+primaryColor="#F39C12"
+backgroundColor="#0F111A"
+secondaryBackgroundColor="#1E1E2F"
+textColor="#F0F6FC"
+font="sans serif"
