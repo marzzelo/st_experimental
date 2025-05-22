@@ -3,7 +3,10 @@ import pandas as pd
 import streamlit as st
 
 from config import page_config
-
+from fpdf import FPDF
+from datetime import datetime
+import os
+import re
 
 # to install PIL use: pip install Pillow
 class TractionCalculator:
@@ -144,6 +147,7 @@ class TractionCalculator:
                     st.rerun()
 
 
+
     def show_results(self):
         with self.center_col:
             st.markdown('<h4 style="color:red">Resultados</h4>', unsafe_allow_html=True)
@@ -159,6 +163,88 @@ class TractionCalculator:
                 st.info('''
                 :small[*Fórmula utilizada para el cálculo de la Fuerza:*]  
                 :blue[$ F = \\sigma_R \\times S_0 \\times 0.75  $]''')
+
+            # Add download button
+            pdf_output = self.generate_pdf(st.session_state.results)
+            st.download_button(
+                label="Descargar PDF",
+                data=pdf_output,
+                file_name="Resultados_Calculo_Traccion.pdf",
+                mime="application/pdf"
+            )
+
+
+    def generate_pdf(self, results):
+
+        def limpiar_markdown(texto):
+            texto = re.sub(r"\*\*(.*?)\*\*", r"\1", texto)
+            texto = texto.replace('\n', ' ')
+            return texto.strip()
+
+        def extraer_partes(texto):
+            """
+            Extrae el nombre de la variable y el símbolo desde el key estilo
+            'CARGA DE PRUEBA, :blue[$F$]' → ("CARGA DE PRUEBA", "F")
+            """
+            match = re.match(r"(.+?),\s*:?\w*\[(?:\$)?(.*?)(?:\$)?\]", texto)
+            if match:
+                nombre, simbolo = match.groups()
+                return limpiar_markdown(nombre.strip()), simbolo.strip()
+            else:
+                return limpiar_markdown(texto.strip()), ""
+
+        class PDF(FPDF):
+            def header(self):
+                image_path = "fadea_logo.png"
+                if os.path.exists(image_path):
+                    self.image(image_path, x=10, y=10, w=190)
+                self.ln(35)
+
+            def footer(self):
+                self.set_y(-15)
+                self.set_font('Arial', 'I', 8)
+                self.set_text_color(128)
+                self.cell(0, 10, f'Laboratorios - {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}', 0, 0, 'C')
+
+        pdf = PDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+
+        # Título
+        pdf.set_font("Arial", 'B', 14)
+        pdf.cell(0, 10, txt="Resultados Cálculo de Tracción", ln=1, align='C')
+        pdf.ln(10)
+
+        # Encabezado de tabla
+        pdf.set_font("Arial", 'B', 12)
+        pdf.set_fill_color(220, 220, 220)
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(80, 10, "Nombre de la variable", 1, 0, 'C', True)
+        pdf.cell(40, 10, "Símbolo", 1, 0, 'C', True)
+        pdf.cell(70, 10, "Valor", 1, 1, 'C', True)
+
+        # Filas
+        for key, value in results.items():
+            nombre, simbolo = extraer_partes(key)
+            valor = f"{value[0]} {value[1]}"
+
+            # Nombre
+            pdf.set_font("Arial", '', 12)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(80, 10, nombre, 1, 0)
+
+            # Símbolo (fucsia: RGB 255, 0, 150)
+            pdf.set_text_color(255, 0, 150)
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(40, 10, simbolo, 1, 0, 'C')
+
+            # Valor (azul)
+            pdf.set_text_color(0, 0, 160)
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(70, 10, valor, 1, 1, 'C')
+
+        return pdf.output(dest='S').encode('latin-1')
+
 
 
 

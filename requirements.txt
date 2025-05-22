@@ -12,3 +12,4 @@ seaborn
 openai
 openpyxl
 pillow
+fpdf
