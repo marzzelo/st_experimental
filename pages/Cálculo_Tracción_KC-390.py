@@ -177,20 +177,33 @@ class TractionCalculator:
     def generate_pdf(self, results):
 
         def limpiar_markdown(texto):
+            # Remove Streamlit color and symbol syntax like :blue[text] or :small[text]
+            # Note: This regex is now less aggressive as dollar signs are handled in extraer_partes
+            texto = re.sub(r":\w*\[(.*?)\]", r"\1", texto)
+            # Remove bold markdown **text**
             texto = re.sub(r"\*\*(.*?)\*\*", r"\1", texto)
             texto = texto.replace('\n', ' ')
             return texto.strip()
 
         def extraer_partes(texto):
             """
-            Extrae el nombre de la variable y el símbolo desde el key estilo
-            'CARGA DE PRUEBA, :blue[$F$]' → ("CARGA DE PRUEBA", "F")
+            Extrae el nombre de la variable y el símbolo.
+            Intenta encontrar el patrón 'Nombre, ... [Símbolo]'.
+
+            Captura el símbolo dentro de los corchetes, excluyendo opcionalmente los signos $.
             """
-            match = re.match(r"(.+?),\s*:?\w*\[(?:\$)?(.*?)(?:\$)?\]", texto)
+            # Regex to find 'Name, ... [Symbol]'
+            # Capture everything before the last comma as name (non-greedy)
+            # Capture content inside the last pair of brackets, excluding optional $ signs
+            match = re.search(r"(.+),\s*.*\[\$?(.*?)\$?\]", texto)
             if match:
-                nombre, simbolo = match.groups()
-                return limpiar_markdown(nombre.strip()), simbolo.strip()
+                nombre_raw = match.group(1)
+                simbolo_raw = match.group(2)
+                nombre = limpiar_markdown(nombre_raw.strip())
+                simbolo = limpiar_markdown(simbolo_raw.strip()) # Clean the symbol too (e.g., remove bold)
+                return nombre, simbolo
             else:
+                # If the pattern doesn't match, assume the whole text is the name
                 return limpiar_markdown(texto.strip()), ""
 
         class PDF(FPDF):
@@ -198,7 +211,7 @@ class TractionCalculator:
                 image_path = "fadea_logo.png"
                 if os.path.exists(image_path):
                     self.image(image_path, x=10, y=10, w=190)
-                self.ln(35)
+                self.ln(50) # Increased line break
 
             def footer(self):
                 self.set_y(-15)
