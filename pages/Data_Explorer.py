@@ -78,7 +78,7 @@ class DataExplorer:
         
         
     def plot_data(self):
-        
+
         with st.form("data_plot_form"):
             st.subheader('Data Plotting', divider=True)
             
@@ -137,17 +137,16 @@ class DataExplorer:
                     selected_cols.append(col)
                 i += 1
 
-            # Agregar checkbox para guardar el dataset filtrado
-            save_data = st.checkbox("Save dataset")
-            if save_data:
-                saved_message = st.empty()    
-                
             st.checkbox("Reset Limits", key="chk_reset")
+            # Agregar checkbox para guardar el dataset filtrado 
+            save_data = st.checkbox("Save with selected cols and limits")
 
             # Use columns for buttons
-            col_buttons = st.columns(2)
+            col_buttons = st.columns([3,1,2,7], vertical_alignment="bottom")
             submitted_plot = col_buttons[0].form_submit_button("Graficar")
             submitted_filter = col_buttons[1].form_submit_button("Filtrar")
+            # Add input for rolling mean window size
+            window_size = col_buttons[2].number_input("Media Movil Window", min_value=3, value=21, step=1)
 
             if submitted_plot:
                 # Filtrar los datos basados en los límites del eje X ingresados
@@ -169,21 +168,22 @@ class DataExplorer:
                     ax.legend()
                 st.pyplot(fig)
 
+                # Check the state of the checkbox outside the form
                 if save_data:
                     # Crear un DataFrame con las columnas seleccionadas y los datos filtrados
                     columns_to_save = [x_col] + selected_cols
-                    filtered_data = data.loc[mask, columns_to_save]
-                    # st.write("Dataset filtrado:", filtered_data)
-
-                    original_name = os.path.basename(self.data_file_name )
-                    output_file_name = f"data/filtered_{original_name}"
-                    # save to csv
-                    filtered_data.to_csv(output_file_name, index=False)
-                    st.success(f"Dataset saved as '{output_file_name}'")
-                    saved_message.markdown(f":violet[Data set saved as] :blue['{output_file_name}']")
+                    selected_data = data.loc[mask, columns_to_save]
+                    # Convertir el DataFrame a CSV en memoria
+                    csv = selected_data.to_csv(index=False).encode('utf-8')
+                    original_name = os.path.basename(self.data_file_name)
+                    output_file_name = f"selected_{original_name}"
+                    # Store selected data in session state
+                    st.session_state['selected_data_df'] = selected_data
+                    st.session_state['selected_data_name'] = output_file_name
+                    st.success(f"Dataset seleccionado listo para descargar.")
 
             if submitted_filter:
-                st.write("Aplicando filtro de media móvil (ventana 21)...")
+                st.write("Aplicando filtro de media móvil (ventana {})...".format(window_size))
                 # Identify columns to filter
                 cols_to_filter = [col for col in self.data.columns if col != x_col and col.lower() not in NOPLOT_COLS and np.issubdtype(self.data[col].dtype, np.number)]
 
@@ -191,23 +191,49 @@ class DataExplorer:
                     st.warning("No hay columnas numéricas para aplicar el filtro.")
                 else:
                     # Apply rolling mean
+                    filtered_df = self.data.copy()
                     for col in cols_to_filter:
-                        self.data[f"{col}_f"] = self.data[col].rolling(window=21, center=True).mean()
-                        
-                    # Save the filtered data
-                    filtered_data = self.data[[x_col] + [f"{col}_f" for col in cols_to_filter]]
-                    original_name = os.path.basename(self.data_file_name)
-                    output_file_name = f"data/{original_name}_filtered.csv"
-                    
-                    # save to csv
-                    filtered_data.to_csv(output_file_name, index=False)
-                    st.write("Datos filtrados con media móvil (ventana 21):")
-                    st.write(filtered_data.head(50))
+                        filtered_df[f"{col}_f"] = filtered_df[col].rolling(window=window_size, center=True).mean()
+
+                    # Prepare the filtered data
+                    filtered_data_for_display = filtered_df[[x_col] + [f"{col}_f" for col in cols_to_filter]]
+
+                    # Store filtered data in session state
+                    st.session_state['filtered_data_df'] = filtered_data_for_display
+                    st.session_state['filtered_data_name'] = f"filtered_{os.path.basename(self.data_file_name)}"
+
+                    st.write("Datos filtrados con media móvil (ventana {}):".format(window_size))
+                    st.write(filtered_data_for_display.head(50))
 
                     st.success("Filtro de media móvil aplicado.")
-                    st.info("Haz clic en 'Graficar' de nuevo para visualizar los datos filtrados.")
-                
-                
+                    st.info("El botón de descarga aparecerá debajo del formulario.")
+
+        # Check session state outside the form to display the download button
+        if 'filtered_data_df' in st.session_state:
+            filtered_df_to_download = st.session_state['filtered_data_df']
+            download_name = st.session_state['filtered_data_name']
+            csv = filtered_df_to_download.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Descargar datos filtrados como CSV",
+                data=csv,
+                file_name=download_name,
+                mime='text/csv'
+            )
+            # Remove 'filtered_data_df' from session state after download
+            del st.session_state['filtered_data_df']
+        
+        if 'selected_data_df' in st.session_state:
+            selected_df_to_download = st.session_state['selected_data_df']
+            download_name = st.session_state['selected_data_name']
+            csv = selected_df_to_download.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Descargar dataset seleccionado como CSV",
+                data=csv,
+                file_name=download_name,
+                mime='text/csv'
+            )
+            # Remove 'selected_data_df' from session state after download
+            del st.session_state['selected_data_df']
                 
             
    
