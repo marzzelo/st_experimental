@@ -137,6 +137,22 @@ class DataExplorer:
                     selected_cols.append(col)
                 i += 1
 
+            # Sección para seleccionar columnas a filtrar
+            st.markdown("### Selecciona las columnas a Filtrar:")
+            selected_cols_for_filter = []
+            cols_filter_selection = st.columns(6)
+            i_filter = 0
+            for col_name in data.columns:
+                if col_name == x_col or col_name.lower() in NOPLOT_COLS or not np.issubdtype(data[col_name].dtype, np.number):
+                    continue
+                if cols_filter_selection[i_filter % 6].checkbox(f"Filtrar {col_name}", value=False, key=f"filter_{col_name}"):
+                    selected_cols_for_filter.append(col_name)
+                i_filter += 1
+                
+            # horizontal line to separate sections
+            st.markdown("---")
+
+            # Agregar checkbox para resetear los límites
             st.checkbox("Reset Limits", key="chk_reset")
             # Agregar checkbox para guardar el dataset filtrado 
             save_data = st.checkbox("Save with selected cols and limits")
@@ -184,8 +200,8 @@ class DataExplorer:
 
             if submitted_filter:
                 st.write("Aplicando filtro de media móvil (ventana {})...".format(window_size))
-                # Identify columns to filter
-                cols_to_filter = [col for col in self.data.columns if col != x_col and col.lower() not in NOPLOT_COLS and np.issubdtype(self.data[col].dtype, np.number)]
+                # Identify columns to filter based on user selection
+                cols_to_filter = selected_cols_for_filter
 
                 if not cols_to_filter:
                     st.warning("No hay columnas numéricas para aplicar el filtro.")
@@ -195,18 +211,86 @@ class DataExplorer:
                     for col in cols_to_filter:
                         filtered_df[f"{col}_f"] = filtered_df[col].rolling(window=window_size, center=True).mean()
 
-                    # Prepare the filtered data
-                    filtered_data_for_display = filtered_df[[x_col] + [f"{col}_f" for col in cols_to_filter]]
+                    # Prepare the data for download to match the plot
+                    df_for_download = pd.DataFrame()
+                    if x_col in data.columns: # 'data' is self.data in this scope
+                        df_for_download[x_col] = data[x_col].copy()
 
-                    # Store filtered data in session state
-                    st.session_state['filtered_data_df'] = filtered_data_for_display
-                    st.session_state['filtered_data_name'] = f"filtered_{os.path.basename(self.data_file_name)}"
+                    for col_to_plot_original_name in selected_cols: # Iterate through columns selected for plotting
+                        if col_to_plot_original_name in cols_to_filter:
+                            # This column was filtered, use its filtered version for download
+                            filtered_col_name_for_download = f"{col_to_plot_original_name}_f"
+                            if filtered_col_name_for_download in filtered_df.columns:
+                                df_for_download[filtered_col_name_for_download] = filtered_df[filtered_col_name_for_download].copy()
+                        else:
+                            # This column was plotted but not filtered, use its original version for download
+                            if col_to_plot_original_name in data.columns:
+                                df_for_download[col_to_plot_original_name] = data[col_to_plot_original_name].copy()
+                    
+                    # Store this comprehensive DataFrame in session state for download
+                    st.session_state['filtered_data_df'] = df_for_download
+                    # Update the name to reflect that it contains plotted data (original and/or filtered)
+                    st.session_state['filtered_data_name'] = f"plotted_data_{os.path.basename(self.data_file_name)}"
 
-                    st.write("Datos filtrados con media móvil (ventana {}):".format(window_size))
-                    st.write(filtered_data_for_display.head(50))
+                    # st.write("Datos filtrados con media móvil (ventana {}):".format(window_size))
+                    # st.write(df_for_download.head(50)) # If you want to display the head of the download-ready data
 
                     st.success("Filtro de media móvil aplicado.")
                     st.info("El botón de descarga aparecerá debajo del formulario.")
+
+                    # Graficar los datos (combinando originales y filtrados según selección)
+                    st.write("Graficando datos...")
+                    fig, ax = plt.subplots(figsize=(20, 10))
+                    any_data_plotted = False
+
+                    # Iterar sobre las columnas seleccionadas para graficar en general (selected_cols)
+                    for col_to_plot_original_name in selected_cols:
+                        
+                        # Determinar si esta columna fue también seleccionada para filtrar
+                        if col_to_plot_original_name in cols_to_filter:
+                            # Sí fue filtrada: usar la versión filtrada (_f) desde filtered_df
+                            col_y_axis_name = f"{col_to_plot_original_name}_f"
+                            source_df_for_plot = filtered_df
+                            plot_series_label = f"{col_to_plot_original_name} (filtrado)"
+                        else:
+                            # No fue filtrada: usar la versión original desde 'data' (self.data)
+                            col_y_axis_name = col_to_plot_original_name
+                            source_df_for_plot = data # 'data' es self.data en este scope
+                            plot_series_label = f"{col_to_plot_original_name}"
+
+                        # Asegurarse que las columnas x_col y col_y_axis_name existen en el source_df_for_plot
+                        if x_col not in source_df_for_plot.columns:
+                            st.warning(f"Columna X '{x_col}' no encontrada en el DataFrame de origen para '{plot_series_label}'.")
+                            continue
+                        if col_y_axis_name not in source_df_for_plot.columns:
+                            st.warning(f"Columna Y '{col_y_axis_name}' no encontrada en el DataFrame de origen para '{plot_series_label}'.")
+                            continue
+                            
+                        # Aplicar límites del eje X al DataFrame de origen correspondiente
+                        # y seleccionar solo las columnas x_col y col_y_axis_name
+                        current_series_data_bounded = source_df_for_plot[
+                            (source_df_for_plot[x_col] >= x_lower) & (source_df_for_plot[x_col] <= x_upper)
+                        ][[x_col, col_y_axis_name]].copy()
+                        
+                        # Eliminar NaNs de la columna Y para esta serie, ajustando X correspondientemente
+                        current_series_data_bounded.dropna(subset=[col_y_axis_name], inplace=True)
+                        
+                        if current_series_data_bounded.empty:
+                            st.warning(f"La serie '{plot_series_label}' no tiene datos válidos en el rango X seleccionado después de eliminar NaNs.")
+                            continue
+                        
+                        ax.plot(current_series_data_bounded[x_col], current_series_data_bounded[col_y_axis_name], label=plot_series_label)
+                        any_data_plotted = True
+                    
+                    ax.set_xlabel(x_col)
+                    ax.set_ylabel('Value') # Y-label es genérico
+                    ax.set_title("Gráfico de Datos (con columnas filtradas y originales)") # Título actualizado
+                    ax.set_xlim(x_lower, x_upper)
+                    ax.set_ylim(y_lower, y_upper)
+                    ax.grid()
+                    if any_data_plotted:
+                        ax.legend()
+                    st.pyplot(fig)
 
         # Check session state outside the form to display the download button
         if 'filtered_data_df' in st.session_state:
