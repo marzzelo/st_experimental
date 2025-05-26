@@ -142,10 +142,14 @@ class DataExplorer:
             if save_data:
                 saved_message = st.empty()    
                 
-            st.checkbox("Reset Limits", key="chk_reset")                                               
+            st.checkbox("Reset Limits", key="chk_reset")
 
-            submitted = st.form_submit_button("Graficar")
-            if submitted:
+            # Use columns for buttons
+            col_buttons = st.columns(2)
+            submitted_plot = col_buttons[0].form_submit_button("Graficar")
+            submitted_filter = col_buttons[1].form_submit_button("Filtrar")
+
+            if submitted_plot:
                 # Filtrar los datos basados en los límites del eje X ingresados
                 mask = (data[x_col] >= x_lower) & (data[x_col] <= x_upper)
                 fig, ax = plt.subplots(figsize=(20, 10))
@@ -177,6 +181,31 @@ class DataExplorer:
                     filtered_data.to_csv(output_file_name, index=False)
                     st.success(f"Dataset saved as '{output_file_name}'")
                     saved_message.markdown(f":violet[Data set saved as] :blue['{output_file_name}']")
+
+            if submitted_filter:
+                st.write("Aplicando filtro de media móvil (ventana 21)...")
+                # Identify columns to filter
+                cols_to_filter = [col for col in self.data.columns if col != x_col and col.lower() not in NOPLOT_COLS and np.issubdtype(self.data[col].dtype, np.number)]
+
+                if not cols_to_filter:
+                    st.warning("No hay columnas numéricas para aplicar el filtro.")
+                else:
+                    # Apply rolling mean
+                    for col in cols_to_filter:
+                        self.data[f"{col}_f"] = self.data[col].rolling(window=21, center=True).mean()
+                        
+                    # Save the filtered data
+                    filtered_data = self.data[[x_col] + [f"{col}_f" for col in cols_to_filter]]
+                    original_name = os.path.basename(self.data_file_name)
+                    output_file_name = f"data/{original_name}_filtered.csv"
+                    
+                    # save to csv
+                    filtered_data.to_csv(output_file_name, index=False)
+                    st.write("Datos filtrados con media móvil (ventana 21):")
+                    st.write(filtered_data.head(50))
+
+                    st.success("Filtro de media móvil aplicado.")
+                    st.info("Haz clic en 'Graficar' de nuevo para visualizar los datos filtrados.")
                 
                 
                 
