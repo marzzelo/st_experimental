@@ -15,7 +15,7 @@ NOPLOT_COLS = ["t", "ts", "n", "time", "timespan", "tspan", "sample#", "sample"]
 class DataExplorer:
     def __init__(self):
         page_config(title="Data Explorer", icon="📊", layout='wide')
-        print("\n\n\n=================================================================================================")
+        print("\n\n\nStarting...")
         self.layout()
         
     
