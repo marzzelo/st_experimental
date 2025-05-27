@@ -52,7 +52,7 @@ class DataExplorer:
             data = data.loc[:, ~data.columns.str.lower().isin(NOPLOT_COLS)]
             corr = data.corr()
             fig, ax = plt.subplots()
-            sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax, fmt="0.3f")
+            sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax, fmt="0.3f", annot_kws={"size": 5})
             ax.set_title("Correlation Matrix Heatmap")
             st.pyplot(fig)
         
@@ -182,132 +182,172 @@ class DataExplorer:
             st.session_state.window_size = window_size # Guardar en session state para persistencia
 
             if submitted_plot:
-                # Filtrar los datos basados en los límites del eje X ingresados
-                mask = (data[x_col] >= x_lower) & (data[x_col] <= x_upper)
+                # Filtrar los datos basados en los límites del eje X ingresados por el usuario
+                user_mask = (data[x_col] >= x_lower) & (data[x_col] <= x_upper)
                 fig, ax = plt.subplots(figsize=(20, 10))
+
+                all_plot_x_data = []
+                all_plot_y_data = []
+                any_data_plotted_for_limits = False
+
                 for col in selected_cols:
-                    column_data = data[col].dropna()
-                    if column_data.empty:
-                        st.warning(f"La columna '{col}' no tiene datos válidos para graficar.")
-                        continue
-                    ax.plot(data.loc[mask, x_col], data.loc[mask, col], label=col)
+                    # Asegurar que data.loc[user_mask, col] y data.loc[user_mask, x_col] se manejen correctamente
+                    y_series_masked = data.loc[user_mask, col]
+                    x_series_masked = data.loc[user_mask, x_col]
+
+                    temp_df_plot = pd.DataFrame({
+                        'x': x_series_masked,
+                        'y': y_series_masked
+                    }).dropna(subset=['y'])
+
+                    if not temp_df_plot.empty:
+                        ax.plot(temp_df_plot['x'], temp_df_plot['y'], label=col)
+                        all_plot_x_data.append(temp_df_plot['x'])
+                        all_plot_y_data.append(temp_df_plot['y'])
+                        any_data_plotted_for_limits = True
+                    else:
+                        st.warning(f"La columna '{col}' no tiene datos válidos para graficar después de aplicar la máscara y dropna.")
+                
+                # Usar los límites de entrada como predeterminados para el gráfico
+                plot_x_min, plot_x_max = x_lower, x_upper
+                plot_y_min, plot_y_max = y_lower, y_upper
+
+                if any_data_plotted_for_limits:
+                    combined_x_data = pd.concat(all_plot_x_data)
+                    combined_y_data = pd.concat(all_plot_y_data)
+                    if not combined_x_data.empty:
+                        plot_x_min = combined_x_data.min()
+                        plot_x_max = combined_x_data.max()
+                    if not combined_y_data.empty:
+                        plot_y_min = combined_y_data.min()
+                        plot_y_max = combined_y_data.max()
+                
                 ax.set_xlabel(x_col)
                 ax.set_ylabel('Value')
                 ax.set_title("Data Plot")
-                ax.set_xlim(x_lower, x_upper)
-                ax.set_ylim(y_lower, y_upper)
+                ax.set_xlim(plot_x_min, plot_x_max)
+                ax.set_ylim(plot_y_min, plot_y_max)
                 ax.grid()
-                if selected_cols:
+                if selected_cols and any_data_plotted_for_limits:
                     ax.legend()
                 st.pyplot(fig)
 
-                # Check the state of the checkbox outside the form
                 if save_data:
-                    # Crear un DataFrame con las columnas seleccionadas y los datos filtrados
                     columns_to_save = [x_col] + selected_cols
-                    selected_data = data.loc[mask, columns_to_save]
-                    # Convertir el DataFrame a CSV en memoria
-                    csv = selected_data.to_csv(index=False).encode('utf-8')
+                    # Usar la máscara original basada en la entrada del usuario para guardar los datos
+                    selected_data_to_save = data.loc[user_mask, columns_to_save]
+                    csv = selected_data_to_save.to_csv(index=False).encode('utf-8')
                     original_name = os.path.basename(self.data_file_name)
                     output_file_name = f"selected_{original_name}"
-                    # Store selected data in session state
-                    st.session_state['selected_data_df'] = selected_data
+                    st.session_state['selected_data_df'] = selected_data_to_save
                     st.session_state['selected_data_name'] = output_file_name
                     st.success(f"Dataset seleccionado listo para descargar.")
 
+                if st.session_state.get("chk_reset", False):
+                    ss_set('x_lower', plot_x_min)
+                    ss_set('x_upper', plot_x_max)
+                    ss_set('y_lower', plot_y_min)
+                    ss_set('y_upper', plot_y_max)
+                    st.session_state.chk_reset = False 
+                    st.experimental_rerun()
+
             if submitted_filter:
                 st.write("Aplicando filtro de media móvil (ventana {})...".format(window_size))
-                # Identify columns to filter based on user selection
                 cols_to_filter = selected_cols_for_filter
 
                 if not cols_to_filter:
                     st.warning("No hay columnas numéricas para aplicar el filtro.")
                 else:
-                    # Apply rolling mean
                     filtered_df = self.data.copy()
                     for col in cols_to_filter:
                         filtered_df[f"{col}_f"] = filtered_df[col].rolling(window=window_size, center=True).mean()
 
-                    # Prepare the data for download to match the plot
                     df_for_download = pd.DataFrame()
-                    if x_col in data.columns: # 'data' is self.data in this scope
+                    if x_col in data.columns:
                         df_for_download[x_col] = data[x_col].copy()
-
-                    for col_to_plot_original_name in selected_cols: # Iterate through columns selected for plotting
+                    for col_to_plot_original_name in selected_cols:
                         if col_to_plot_original_name in cols_to_filter:
-                            # This column was filtered, use its filtered version for download
                             filtered_col_name_for_download = f"{col_to_plot_original_name}_f"
                             if filtered_col_name_for_download in filtered_df.columns:
                                 df_for_download[filtered_col_name_for_download] = filtered_df[filtered_col_name_for_download].copy()
                         else:
-                            # This column was plotted but not filtered, use its original version for download
                             if col_to_plot_original_name in data.columns:
                                 df_for_download[col_to_plot_original_name] = data[col_to_plot_original_name].copy()
                     
-                    # Store this comprehensive DataFrame in session state for download
                     st.session_state['filtered_data_df'] = df_for_download
-                    # Update the name to reflect that it contains plotted data (original and/or filtered)
                     st.session_state['filtered_data_name'] = f"plotted_data_{os.path.basename(self.data_file_name)}"
-
-                    # st.write("Datos filtrados con media móvil (ventana {}):".format(window_size))
-                    # st.write(df_for_download.head(50)) # If you want to display the head of the download-ready data
-
                     st.success("Filtro de media móvil aplicado.")
                     st.info("El botón de descarga aparecerá debajo del formulario.")
 
-                    # Graficar los datos (combinando originales y filtrados según selección)
                     st.write("Graficando datos...")
                     fig, ax = plt.subplots(figsize=(20, 10))
-                    any_data_plotted = False
+                    any_data_plotted_for_limits = False
+                    all_plot_x_data_filter = []
+                    all_plot_y_data_filter = []
 
-                    # Iterar sobre las columnas seleccionadas para graficar en general (selected_cols)
                     for col_to_plot_original_name in selected_cols:
-                        
-                        # Determinar si esta columna fue también seleccionada para filtrar
                         if col_to_plot_original_name in cols_to_filter:
-                            # Sí fue filtrada: usar la versión filtrada (_f) desde filtered_df
                             col_y_axis_name = f"{col_to_plot_original_name}_f"
                             source_df_for_plot = filtered_df
                             plot_series_label = f"{col_to_plot_original_name} (filtrado)"
                         else:
-                            # No fue filtrada: usar la versión original desde 'data' (self.data)
                             col_y_axis_name = col_to_plot_original_name
-                            source_df_for_plot = data # 'data' es self.data en este scope
+                            source_df_for_plot = data
                             plot_series_label = f"{col_to_plot_original_name}"
 
-                        # Asegurarse que las columnas x_col y col_y_axis_name existen en el source_df_for_plot
                         if x_col not in source_df_for_plot.columns:
-                            st.warning(f"Columna X '{x_col}' no encontrada en el DataFrame de origen para '{plot_series_label}'.")
+                            st.warning(f"Columna X '{x_col}' no encontrada para '{plot_series_label}'.")
                             continue
                         if col_y_axis_name not in source_df_for_plot.columns:
-                            st.warning(f"Columna Y '{col_y_axis_name}' no encontrada en el DataFrame de origen para '{plot_series_label}'.")
+                            st.warning(f"Columna Y '{col_y_axis_name}' no encontrada para '{plot_series_label}'.")
                             continue
                             
-                        # Aplicar límites del eje X al DataFrame de origen correspondiente
-                        # y seleccionar solo las columnas x_col y col_y_axis_name
+                        # Aplicar límites del eje X definidos por el usuario para la selección de datos
                         current_series_data_bounded = source_df_for_plot[
                             (source_df_for_plot[x_col] >= x_lower) & (source_df_for_plot[x_col] <= x_upper)
                         ][[x_col, col_y_axis_name]].copy()
                         
-                        # Eliminar NaNs de la columna Y para esta serie, ajustando X correspondientemente
                         current_series_data_bounded.dropna(subset=[col_y_axis_name], inplace=True)
                         
                         if current_series_data_bounded.empty:
-                            st.warning(f"La serie '{plot_series_label}' no tiene datos válidos en el rango X seleccionado después de eliminar NaNs.")
+                            st.warning(f"La serie '{plot_series_label}' no tiene datos válidos en el rango X después de NaNs.")
                             continue
                         
                         ax.plot(current_series_data_bounded[x_col], current_series_data_bounded[col_y_axis_name], label=plot_series_label)
-                        any_data_plotted = True
+                        all_plot_x_data_filter.append(current_series_data_bounded[x_col])
+                        all_plot_y_data_filter.append(current_series_data_bounded[col_y_axis_name])
+                        any_data_plotted_for_limits = True
+                    
+                    plot_x_min_f, plot_x_max_f = x_lower, x_upper
+                    plot_y_min_f, plot_y_max_f = y_lower, y_upper
+
+                    if any_data_plotted_for_limits:
+                        combined_x_data_f = pd.concat(all_plot_x_data_filter)
+                        combined_y_data_f = pd.concat(all_plot_y_data_filter)
+                        if not combined_x_data_f.empty:
+                            plot_x_min_f = combined_x_data_f.min()
+                            plot_x_max_f = combined_x_data_f.max()
+                        if not combined_y_data_f.empty:
+                            plot_y_min_f = combined_y_data_f.min()
+                            plot_y_max_f = combined_y_data_f.max()
                     
                     ax.set_xlabel(x_col)
-                    ax.set_ylabel('Value') # Y-label es genérico
-                    ax.set_title("Gráfico de Datos (con columnas filtradas y originales)") # Título actualizado
-                    ax.set_xlim(x_lower, x_upper)
-                    ax.set_ylim(y_lower, y_upper)
+                    ax.set_ylabel('Value')
+                    ax.set_title("Gráfico de Datos (con columnas filtradas y originales)")
+                    ax.set_xlim(plot_x_min_f, plot_x_max_f)
+                    ax.set_ylim(plot_y_min_f, plot_y_max_f)
                     ax.grid()
-                    if any_data_plotted:
+                    if any_data_plotted_for_limits:
                         ax.legend()
                     st.pyplot(fig)
+
+                    if st.session_state.get("chk_reset", False):
+                        ss_set('x_lower', plot_x_min_f)
+                        ss_set('x_upper', plot_x_max_f)
+                        ss_set('y_lower', plot_y_min_f)
+                        ss_set('y_upper', plot_y_max_f)
+                        st.session_state.chk_reset = False
+                        st.experimental_rerun()
 
         # Check session state outside the form to display the download button
         if 'filtered_data_df' in st.session_state:
