@@ -21,7 +21,7 @@ class DataExplorer:
     
     def layout(self):
         st.html('<h2>Explorador de Datos</h2>')
-        default_file_name = r'data\sample_data.csv'
+        # default_file_name = r'data\sample_data.csv'
                 
         # load a csv file from disk and display a plot of its data
         uploaded_file = st.file_uploader("Choose a CSV file", type=["csv", "txt"])
