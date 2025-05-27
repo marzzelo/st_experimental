@@ -79,90 +79,107 @@ class DataExplorer:
         
     def plot_data(self):
 
-        with st.form("data_plot_form"):
-            st.subheader('Data Plotting', divider=True)
-            
-            if "chk_reset" in st.session_state:
-                if st.session_state["chk_reset"]:
-                    for key in ['x_lower', 'x_upper', 'y_lower', 'y_upper']:
-                        st.session_state.pop(key, None)
-                    st.session_state["chk_reset"] = False
-                    
-            print(f"session state: {st.session_state}")
-            
-            data = self.data
-            x_col = data.columns[0]
-            st.write(f"Usando la columna '{x_col}' como eje X")
-            
-            x_lower_val = ss_get('x_lower', float(data[x_col].min()))
-            x_upper_val = ss_get('x_upper', float(data[x_col].max()))
-            
-            others = [col for col in data.columns if col != x_col and col.lower() not in NOPLOT_COLS]
-            y_vals = pd.concat([data[col].dropna() for col in others])
-            y_lower_val = ss_get('y_lower', float(y_vals.min()))
-            y_upper_val = ss_get('y_upper', float(y_vals.max()))  
-            
-            print(f"session state after get: {st.session_state}")
-            print('x_lower_val:', x_lower_val)
-            
-            
-            # Permitir al usuario seleccionar los límites para el eje X
-            col1, col2, col3, col4 = st.columns(4)
-            x_lower = col1.number_input(":green[Límite inferior eje X]", value=x_lower_val)
-            x_upper = col2.number_input(":green[Límite superior eje X]", value=x_upper_val)
+        # data, x_col, NOPLOT_COLS, etc. deben definirse antes de usarse fuera del formulario
+        data = self.data
+        x_col = data.columns[0]
+        
+        # --- SECCIÓN DE LÍMITES X/Y Y SELECCIÓN DE COLUMNAS A GRAFICAR (FUERA DEL FORMULARIO PRINCIPAL) ---
+        st.subheader('Configuración de Visualización', divider=True)
 
-            # Calcular valores por defecto para el eje Y a partir de las columnas numéricas a graficar
-            others = [col for col in data.columns if col != x_col and col.lower() not in NOPLOT_COLS]
-            if others:
-                y_vals = pd.concat([data[col].dropna() for col in others])
-                y_lower_default = y_lower_val
-                y_upper_default = y_upper_val
-            else:
-                y_lower_default = 0.0
-                y_upper_default = 1.0
+        if "chk_reset" in st.session_state and st.session_state["chk_reset"]:
+            for key in ['x_lower', 'x_upper', 'y_lower', 'y_upper']:
+                st.session_state.pop(key, None)
+            st.session_state["chk_reset"] = False
+            # Forzar la recarga de la página para aplicar el reseteo inmediatamente
+            # st.experimental_rerun() # Comentado para evitar bucles si no se maneja con cuidado
 
-            # Permitir al usuario seleccionar los límites para el eje Y
-            y_lower = col3.number_input(":red[Límite inferior eje Y]", value=y_lower_default)
-            y_upper = col4.number_input(":red[Límite superior eje Y]", value=y_upper_default)
+        st.write(f"Usando la columna '{x_col}' como eje X")
+        
+        x_lower_val = ss_get('x_lower', float(data[x_col].min()))
+        x_upper_val = ss_get('x_upper', float(data[x_col].max()))
+        
+        others_for_y_calc = [col for col in data.columns if col != x_col and col.lower() not in NOPLOT_COLS and np.issubdtype(data[col].dtype, np.number)]
+        if others_for_y_calc:
+            y_vals = pd.concat([data[col].dropna() for col in others_for_y_calc if not data[col].dropna().empty])
+            if not y_vals.empty:
+                y_lower_val = ss_get('y_lower', float(y_vals.min()))
+                y_upper_val = ss_get('y_upper', float(y_vals.max()))
+            else: # Fallback si todas las columnas 'others' están vacías después de dropna
+                y_lower_val = ss_get('y_lower', 0.0)
+                y_upper_val = ss_get('y_upper', 1.0)
+        else: # Fallback si no hay columnas 'others'
+            y_lower_val = ss_get('y_lower', 0.0)
+            y_upper_val = ss_get('y_upper', 1.0)
 
-            # Agregar checkboxes para que el usuario seleccione las columnas a graficar
-            selected_cols = []
-            st.markdown("### Selecciona las columnas a graficar:")
-            cols = st.columns(6)
-            i = 0
-            for col in data.columns:
-                if col == x_col or col.lower() in NOPLOT_COLS:
+        col1, col2, col3, col4 = st.columns(4)
+        x_lower = col1.number_input(":green[Límite inferior eje X]", value=x_lower_val, key="x_lower_input")
+        x_upper = col2.number_input(":green[Límite superior eje X]", value=x_upper_val, key="x_upper_input")
+        y_lower = col3.number_input(":red[Límite inferior eje Y]", value=y_lower_val, key="y_lower_input")
+        y_upper = col4.number_input(":red[Límite superior eje Y]", value=y_upper_val, key="y_upper_input")
+        
+        # Actualizar session_state cuando cambian los number_input
+        ss_set('x_lower', x_lower)
+        ss_set('x_upper', x_upper)
+        ss_set('y_lower', y_lower)
+        ss_set('y_upper', y_upper)
+
+        st.markdown("### Selecciona las columnas a graficar:")
+        if 'all_plot_selected_state' not in st.session_state:
+            st.session_state.all_plot_selected_state = True 
+
+        toggle_button_label = "Uncheck All" if st.session_state.all_plot_selected_state else "Check All"
+        
+        if st.button(toggle_button_label, key="toggle_all_plot_checkboxes_button"):
+            st.session_state.all_plot_selected_state = not st.session_state.all_plot_selected_state
+            current_master_checkbox_state = st.session_state.all_plot_selected_state
+            for col_to_toggle in data.columns: 
+                if col_to_toggle == x_col or col_to_toggle.lower() in NOPLOT_COLS:
                     continue
-                if cols[i % 6].checkbox(f"{col}", value=True):
-                    selected_cols.append(col)
-                i += 1
+                st.session_state[f"plot_cb_{col_to_toggle}"] = current_master_checkbox_state
+        
+        selected_cols = []
+        checkbox_cols_layout = st.columns(6)
+        i = 0
+        for col_loop_var in data.columns:
+            if col_loop_var == x_col or col_loop_var.lower() in NOPLOT_COLS:
+                continue
+            
+            is_checked = checkbox_cols_layout[i % 6].checkbox(
+                f"{col_loop_var}", 
+                value=st.session_state.get(f"plot_cb_{col_loop_var}", True), 
+                key=f"plot_cb_{col_loop_var}"
+            )
+            if is_checked:
+                selected_cols.append(col_loop_var)
+            i += 1
+        # --- FIN DE LA SECCIÓN MOVIDA ---
 
+        with st.form("data_processing_form"): # Clave de formulario única
+            st.subheader('Procesamiento y Filtrado de Datos', divider=True)
+            
             # Sección para seleccionar columnas a filtrar
-            st.markdown("### Selecciona las columnas a Filtrar:")
+            st.markdown("### Selecciona las columnas a Filtrar (para Media Móvil):")
             selected_cols_for_filter = []
             cols_filter_selection = st.columns(6)
             i_filter = 0
             for col_name in data.columns:
                 if col_name == x_col or col_name.lower() in NOPLOT_COLS or not np.issubdtype(data[col_name].dtype, np.number):
                     continue
-                if cols_filter_selection[i_filter % 6].checkbox(f"Filtrar {col_name}", value=False, key=f"filter_{col_name}"):
+                # Usar una clave única para estos checkboxes de filtro
+                if cols_filter_selection[i_filter % 6].checkbox(f"Filtrar {col_name}", value=st.session_state.get(f"filter_cb_{col_name}", False), key=f"filter_cb_{col_name}"):
                     selected_cols_for_filter.append(col_name)
                 i_filter += 1
                 
-            # horizontal line to separate sections
             st.markdown("---")
 
-            # Agregar checkbox para resetear los límites
-            st.checkbox("Reset Limits", key="chk_reset")
-            # Agregar checkbox para guardar el dataset filtrado 
-            save_data = st.checkbox("Save with selected cols and limits")
+            st.checkbox("Resetear Límites al Graficar/Filtrar", key="chk_reset")
+            save_data = st.checkbox("Guardar dataset con columnas y límites seleccionados (al Graficar)")
 
-            # Use columns for buttons
             col_buttons = st.columns([3,1,2,7], vertical_alignment="bottom")
             submitted_plot = col_buttons[0].form_submit_button("Graficar")
             submitted_filter = col_buttons[1].form_submit_button("Filtrar")
-            # Add input for rolling mean window size
-            window_size = col_buttons[2].number_input("Media Movil Window", min_value=3, value=21, step=1)
+            window_size = col_buttons[2].number_input("Ventana Media Móvil", min_value=3, value=st.session_state.get('window_size', 21), step=1, key='window_size_input')
+            st.session_state.window_size = window_size # Guardar en session state para persistencia
 
             if submitted_plot:
                 # Filtrar los datos basados en los límites del eje X ingresados
