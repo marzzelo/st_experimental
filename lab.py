@@ -32,9 +32,9 @@ class PlayStoreApp:
         with col3:
             with st.container(height=60, border=True):
                 st.page_link('pages/Calculadora_FTC.py', label='Frecuencia y Ciclos', icon="♾️", help=None, disabled=False, use_container_width=True)
-            # with st.container(height=60, border=True):
-            #     st.page_link('pages/Test_Page.py', label='TEST PAGE', icon="🟡", help=None, disabled=False, use_container_width=True)
-
+            with st.container(height=60, border=True):
+                st.page_link('pages/Rotations.py', label='Rotations', icon="🔄", help=None, disabled=False, use_container_width=True)
+           
         st.markdown("---")
         st.markdown('<h3>Contacto:</h3>', unsafe_allow_html=True)
         st.markdown('Correo: **[valdez@fadeasa.com.ar](mailto:valdez@fadeasa.com.ar)**', unsafe_allow_html=True)
