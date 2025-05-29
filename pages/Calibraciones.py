@@ -108,6 +108,8 @@ class CalibrationApp:
                     rel_error_0 = abs_error_0 / df[pat_0].replace(0, pd.NA)
                     abs_error_r = df[dut_r] - df[pat_r]
                     rel_error_r = abs_error_r / df[pat_r].replace(0, pd.NA)
+                    
+                    # Gráfico de Error Absoluto ------------------------------------------
                     fig1, ax1 = plt.subplots(figsize=(8, 4))
                     x = np.arange(len(df))
                     width = 0.4
@@ -124,7 +126,7 @@ class CalibrationApp:
                     st.pyplot(fig1)
                     buf1 = io.BytesIO()
                     fig1.savefig(buf1, format="png")
-                    st.download_button(f"Descargar gráfico de error absoluto celda {idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
+                    st.download_button(f"Descargar gráfico de error absoluto para celda #{idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
                     tabla_abs = pd.DataFrame({
                         f'PAT(L) [{unidad_fuerza}]': df[pat_0],
                         f'DUT(L) [{unidad_fuerza}]': df[dut_0],
@@ -137,6 +139,8 @@ class CalibrationApp:
                     st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
                     st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
                     st.divider()
+                    
+                    # Gráfico de Error Relativo ------------------------------------------
                     fig2, ax2 = plt.subplots(figsize=(8, 4))
                     ax2.scatter(df[pat_0], rel_error_0 * 100, label="Carga (muestras)", color='tab:blue', s=60, marker='o', zorder=3)
                     ax2.scatter(df[pat_r], rel_error_r * 100, label="Descarga (muestras)", color='tab:orange', s=60, marker='x', zorder=3)
@@ -155,6 +159,10 @@ class CalibrationApp:
                     ax2.set_title(f"Error Relativo para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
                     fig2.text(0.5, 0.91, f"Fecha de Calibración: {fecha_calibracion_str}", ha='center', fontsize=10, color='gray')
                     ax2.axhline(0, color='black', linewidth=1)
+                    # Agregar cotas horizontales y área sombreada
+                    ax2.axhline(-1, color='gray', linestyle='--', linewidth=1)
+                    ax2.axhline(1, color='gray', linestyle='--', linewidth=1)
+                    ax2.fill_between(x_carga if 'x_carga' in locals() else np.linspace(df[pat_0].min(), df[pat_0].max(), 200), -1, 1, color='green', alpha=0.2, label='Zona de tolerancia (+/-1%)')
                     ax2.legend()
                     ax2.grid()
                     ax2.grid(which='major', linestyle='-', linewidth=0.7)
@@ -163,7 +171,7 @@ class CalibrationApp:
                     st.pyplot(fig2)
                     buf2 = io.BytesIO()
                     fig2.savefig(buf2, format="png")
-                    st.download_button(f"Descargar gráfico de error relativo para {idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
+                    st.download_button(f"Descargar gráfico de error relativo para celda #{idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
                     tabla_rel = pd.DataFrame({
                         f'PAT(L) [{unidad_fuerza}]': df[pat_0],
                         f'DUT(L) [{unidad_fuerza}]': df[dut_0],
