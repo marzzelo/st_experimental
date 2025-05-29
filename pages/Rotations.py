@@ -12,15 +12,42 @@ page_config(title="Cell Rotations", icon="🔄")
 def to_excel(df_to_convert):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df_to_convert.to_excel(writer, index=False, sheet_name='Sheet1') # CORREGIDO
+        df_to_convert.to_excel(writer, index=False, sheet_name='Sheet1')
     processed_data = output.getvalue()
     return processed_data
 
 # Título de la página
 st.markdown("# Cell Rotations")
 
+# Expander con instrucciones
+with st.expander("ℹ️ Instrucciones", expanded=False):
+    st.markdown("""
+    Esta aplicación genera nuevas columnas en un archivo Excel basadas en rotaciones de mediciones existentes.
+
+    **Pasos:**
+    1.  **Configura los Parámetros:**
+        *   **Decimales PAT:** Número de decimales para las columnas PAT (Patrón) generadas.
+        *   **Decimales DUT:** Número de decimales para las columnas DUT (Dispositivo Bajo Prueba) generadas.
+        *   **Semilla Aleatoria:** Un número entero para inicializar el generador de números aleatorios. Usar la misma semilla con el mismo archivo de entrada y los mismos parámetros producirá siempre el mismo resultado.
+        *   **Dispersión (%):** El porcentaje máximo (en valor absoluto) que cada nueva medición puede desviarse aleatoriamente de su valor de referencia original. Por ejemplo, un 10% significa que los valores pueden variar entre -10% y +10% del valor original.
+
+    2.  **Carga tu Archivo Excel:**
+        *   El archivo debe tener columnas nombradas siguiendo el patrón `PATn_0` y `DUTn_0` (donde `n` es un identificador, por ejemplo, `PAT1_0`, `DUT1_0`, `PAT2_0`, `DUT2_0`, etc.).
+        *   Por cada par `PATn_0` y `DUTn_0`, la aplicación generará cuatro nuevas columnas:
+            *   `PATn_120`, `DUTn_120`: Simulan una rotación de 120 grados.
+            *   `PATn_240`, `DUTn_240`: Simulan una rotación de 240 grados.
+        *   Cada valor en estas nuevas columnas se calculará tomando el valor de la columna `_0` correspondiente y multiplicándolo por `(1 + delta)`, donde `delta` es un valor porcentual aleatorio. Este `delta` se genera individualmente para cada celda, con un módulo máximo definido por el parámetro "Dispersión (%)".
+
+    3.  **Procesamiento:**
+        *   La aplicación leerá el archivo, mostrará el contenido original y luego generará las nuevas columnas.
+        *   Las nuevas columnas se insertarán directamente después de su par `DUTn_0` correspondiente.
+
+    4.  **Descarga:**
+        *   Podrás descargar un nuevo archivo Excel con las columnas originales y las generadas. El nombre del archivo incluirá el nombre original, la palabra `_rot_` y la semilla utilizada.
+    """)
+
 # Entradas para la cantidad de decimales y semilla en columnas
-col1, col2, col3, col4 = st.columns(4) # Modificado para agregar una columna más
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     pat_decimals = st.number_input("Decimales PAT:", min_value=0, value=2, step=1, key="pat_decimals")
