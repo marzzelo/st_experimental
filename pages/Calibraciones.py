@@ -22,6 +22,48 @@ class CalibrationApp:
         self.date = date
         self.np = np
 
+    def generar_informe_pdf(self, st_obj, fecha_calibracion_str, denominacion_patron, unidad_fuerza, limite_tolerancia_rel, celda_indices, denominaciones, df_calibracion, all_plot_buffers_with_names):
+        """
+        Placeholder para generar un informe PDF con los resultados de la calibración.
+        La implementación real requeriría una biblioteca de PDF como ReportLab o FPDF.
+        """
+        st_obj.warning("La funcionalidad de generación de PDF está pendiente de implementación y requeriría una biblioteca externa (ej. ReportLab, FPDF).")
+        st_obj.info("El informe PDF, una vez implementado, contendría:")
+        st_obj.markdown("### Título General")
+        st_obj.markdown("> LABORATORIO DE INGENIERÍA DE MATERIALES Y ENSAYOS ESTRUCTURALES")
+        st_obj.markdown("> INFORME DE ENSAYO")
+        st_obj.markdown("---")
+        st_obj.markdown(f"**Fecha de calibración:** {fecha_calibracion_str}")
+        st_obj.markdown(f"**Instrumento Patrón:** {denominacion_patron}")
+        st_obj.markdown(f"**Unidad de Fuerza:** {unidad_fuerza}")
+        st_obj.markdown(f"**Límite de Tolerancia Relativa:** +/- {limite_tolerancia_rel}%")
+        st_obj.markdown("---")
+
+        for idx in celda_indices:
+            st_obj.markdown(f"### Resultados para: {denominaciones[idx]}")
+            # Aquí se deberían extraer o recalcular los coeficientes de correlación del df_calibracion
+            st_obj.markdown("**Coeficientes de Correlación de Pearson:**")
+            st_obj.markdown("- Carga 0°: (valor a extraer/recalcular)")
+            st_obj.markdown("- Descarga 0°: (valor a extraer/recalcular)")
+            if f'PAT{idx}_120' in df_calibracion.columns:
+                st_obj.markdown("- Carga 120°: (valor a extraer/recalcular)")
+            if f'PAT{idx}_240' in df_calibracion.columns:
+                st_obj.markdown("- Carga 240°: (valor a extraer/recalcular)")
+
+            st_obj.markdown("**Gráficos:**")
+            for plot_name, _ in all_plot_buffers_with_names:
+                if f"celda{idx}" in plot_name: # Intenta coincidir el gráfico con la celda
+                    st_obj.markdown(f"- {plot_name.replace(f'_celda{idx}_{denominaciones[idx]}', '').replace('_celda{idx}','').replace('_',' ').capitalize()}")
+            
+            st_obj.markdown("**Tablas de Datos:**")
+            st_obj.markdown("- Tabla de Error Absoluto (datos a extraer/recalcular)")
+            st_obj.markdown("- Tabla de Error Relativo (datos a extraer/recalcular)")
+            st_obj.markdown("---")
+        
+        # Lógica de generación de PDF con una biblioteca (ej. ReportLab) iría aquí.
+        # Por ahora, no se genera ningún archivo.
+        return None
+
     def run(self):
         st = self.st
         pd = self.pd
@@ -372,12 +414,38 @@ class CalibrationApp:
                             zip_file.writestr(file_name, buf_data.read())
                     
                     zip_buffer.seek(0)
-                    st.download_button(
-                        label="Descargar todos los gráficos (ZIP)",
-                        data=zip_buffer,
-                        file_name=f"graficos_calibracion_{fecha_calibracion.strftime('%Y%m%d')}.zip",
-                        mime="application/zip"
-                    )
+                    
+                    col_zip, col_pdf = st.columns(2)
+
+                    with col_zip:
+                        st.download_button(
+                            label="Descargar todos los gráficos (ZIP)",
+                            data=zip_buffer,
+                            file_name=f"graficos_calibracion_{fecha_calibracion.strftime('%Y%m%d')}.zip",
+                            mime="application/zip"
+                        )
+                    
+                    with col_pdf:
+                        if st.button("Descargar informe PDF"):
+                            # Llamada a la función placeholder para generar el PDF
+                            pdf_data = self.generar_informe_pdf(
+                                self.st,
+                                fecha_calibracion_str,
+                                denominacion_patron,
+                                unidad_fuerza,
+                                limite_tolerancia_rel, # float value
+                                celda_indices,
+                                denominaciones,
+                                df, # El DataFrame principal con todos los datos
+                                all_plot_buffers # Lista de tuplas (nombre_archivo, buffer_datos)
+                            )
+                            if pdf_data: # Este bloque no se ejecutará con el placeholder actual
+                                st.download_button(
+                                    label="Descargar PDF (generado)", # Etiqueta si el PDF fuera generado
+                                    data=pdf_data,
+                                    file_name=f"informe_calibracion_{fecha_calibracion.strftime('%Y%m%d')}.pdf",
+                                    mime="application/pdf"
+                                )
 
 if __name__ == "__main__":
     app = CalibrationApp()
