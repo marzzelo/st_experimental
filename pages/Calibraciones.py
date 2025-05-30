@@ -28,7 +28,7 @@ class CalibrationApp:
         self.date = date
         self.np = np
 
-    def generar_informe_pdf(self, st_obj, fecha_calibracion_str, denominacion_patron, unidad_fuerza, limite_tolerancia_rel, celda_indices, denominaciones, df_calibracion, all_plot_buffers_with_names):
+    def generar_informe_pdf(self, st_obj, fecha_calibracion_str, denominacion_patron, unidad_fuerza, limite_tolerancia_rel, celda_indices, denominaciones, df_calibracion, all_plot_buffers_with_names, n_requerimiento=None, documentacion_aplicada=None, ficha_dut_file=None, ficha_patron_file=None, foto_montaje_file=None):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter,
                                 rightMargin=inch, leftMargin=inch,
@@ -42,12 +42,16 @@ class CalibrationApp:
         style_normal_centro = ParagraphStyle(name='NormalCentro', parent=styles['Normal'], alignment=TA_CENTER)
         style_normal_justificado = ParagraphStyle(name='NormalJustificado', parent=styles['Normal'], alignment=TA_JUSTIFY, spaceBefore=6, spaceAfter=6)
         style_info_header = ParagraphStyle(name='InfoHeader', parent=styles['Normal'], fontSize=10, alignment=TA_LEFT, spaceBefore=6, spaceAfter=6)
-        style_celda_header = ParagraphStyle(name='CeldaHeader', parent=styles['h3'], fontSize=12, spaceBefore=12, spaceAfter=8)
+        style_celda_header = ParagraphStyle(name='CeldaHeader', parent=styles['h3'], fontSize=12, spaceBefore=12, spaceAfter=8, alignment=TA_CENTER) # Centered for image titles
         style_table_title = ParagraphStyle(name='TableTitle', parent=styles['h3'], fontSize=10, spaceBefore=10, spaceAfter=4, alignment=TA_LEFT)
 
         # Título General
         story.append(Paragraph("LABORATORIO DE INGENIERÍA DE MATERIALES Y ENSAYOS ESTRUCTURALES", style_titulo_principal))
         story.append(Paragraph("INFORME DE ENSAYO DE CALIBRACIÓN", style_subtitulo))
+        if n_requerimiento and n_requerimiento.strip():
+            story.append(Paragraph(f"Requerimiento N°: {n_requerimiento}", style_info_header))
+        if documentacion_aplicada and documentacion_aplicada.strip():
+            story.append(Paragraph(f"Documentación Aplicada: {documentacion_aplicada}", style_info_header))
         story.append(Spacer(1, 0.5*inch))
 
         # Información General de Calibración
@@ -61,6 +65,36 @@ class CalibrationApp:
             story.append(PageBreak())
             story.append(Paragraph(f"Resultados para: {denominaciones[idx]}", style_celda_header))
             
+            # Ficha DUT
+            story.append(Paragraph("Equipo bajo prueba", style_celda_header))
+            if ficha_dut_file:
+                try:
+                    ficha_dut_file.seek(0)
+                    img_dut = Image(ficha_dut_file, width=5*inch, height=3.5*inch, kind='bound') # Width set, height auto
+                    img_dut.hAlign = 'CENTER'
+                    story.append(img_dut)
+                    story.append(Spacer(1, 0.2*inch))
+                except Exception as e:
+                    story.append(Paragraph(f"(Error al cargar imagen DUT: {e})", styles['Normal']))
+            else:
+                story.append(Paragraph("(No se proporcionó imagen)", style_normal_centro))
+            story.append(Spacer(1, 0.2*inch))
+
+            # Ficha Patrón
+            story.append(Paragraph("Equipamiento Patrón Utilizado", style_celda_header))
+            if ficha_patron_file:
+                try:
+                    ficha_patron_file.seek(0)
+                    img_patron = Image(ficha_patron_file, width=5*inch, height=3.5*inch, kind='bound') # Width set, height auto
+                    img_patron.hAlign = 'CENTER'
+                    story.append(img_patron)
+                    story.append(Spacer(1, 0.2*inch))
+                except Exception as e:
+                    story.append(Paragraph(f"(Error al cargar imagen Patrón: {e})", styles['Normal']))
+            else:
+                story.append(Paragraph("(No se proporcionó imagen)", style_normal_centro))
+            story.append(Spacer(1, 0.3*inch)) # Extra spacer before coefficients
+
             # Coeficientes de Correlación (Ejemplo, necesitaría datos reales)
             story.append(Paragraph("<b>Coeficientes de Correlación de Pearson:</b>", styles['Normal']))
             
@@ -275,22 +309,32 @@ class CalibrationApp:
             
             story.append(Spacer(1, 0.2*inch)) # Spacer after all tables for this celda
 
+        # Foto Montaje al final del informe
+        if foto_montaje_file:
+            story.append(PageBreak())
+            story.append(Paragraph("Montaje del Sistema de Ensayos", style_celda_header))
+            try:
+                foto_montaje_file.seek(0)
+                img_montaje = Image(foto_montaje_file, width=6*inch, height=8*inch, kind='bound') # Width set, height auto
+                img_montaje.hAlign = 'CENTER'
+                story.append(img_montaje)
+                story.append(Spacer(1, 0.2*inch))
+            except Exception as e:
+                story.append(Paragraph(f"(Error al cargar imagen de montaje: {e})", styles['Normal']))
+        
         try:
             doc.build(story)
         except Exception as e:
             st_obj.error(f"Error al generar el PDF: {e}")
-            # Devolver un buffer vacío o None si hay un error crítico
-            # Para depuración, podríamos añadir el error al PDF si es posible
-            # o simplemente devolver None para que no se intente descargar.
             error_buffer = io.BytesIO()
             error_doc = SimpleDocTemplate(error_buffer, pagesize=letter)
             error_story = [Paragraph(f"Error al generar el PDF: {e}", styles['Normal'])]
             try:
                 error_doc.build(error_story)
                 error_buffer.seek(0)
-                return error_buffer # Devuelve un PDF con el mensaje de error
+                return error_buffer
             except:
-                return None # Fallback si incluso el PDF de error falla
+                return None
 
         buffer.seek(0)
         return buffer
@@ -637,9 +681,6 @@ class CalibrationApp:
                     st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
                     st.divider()
 
-                # st.divider()
-
-                # Nuevos campos para subir archivos y texto
                 st.subheader("Documentación Adicional")
                 ficha_patron_file = st.file_uploader("Ficha de la celda patrón (PNG o JPG)", type=["png", "jpg"], key="ficha_patron")
                 ficha_dut_file = st.file_uploader("Ficha de la celda bajo prueba (PNG o JPG)", type=["png", "jpg"], key="ficha_dut")
@@ -669,19 +710,23 @@ class CalibrationApp:
                     
                     with col_pdf:
                         if st.button("Generar informe PDF"):
-                            # Llamada a la función para generar el PDF
                             pdf_data = self.generar_informe_pdf(
                                 self.st,
                                 fecha_calibracion_str,
                                 denominacion_patron,
                                 unidad_fuerza,
-                                limite_tolerancia_rel, # float value
+                                limite_tolerancia_rel,
                                 celda_indices,
                                 denominaciones,
-                                df, # El DataFrame principal con todos los datos
-                                all_plot_buffers # Lista de tuplas (nombre_archivo, buffer_datos)
+                                df,
+                                all_plot_buffers,
+                                n_requerimiento,
+                                documentacion_aplicada,
+                                ficha_dut_file,
+                                ficha_patron_file,
+                                foto_montaje_file
                             )
-                            if pdf_data: # Este bloque se ejecutará si el PDF es generado correctamente
+                            if pdf_data:
                                 st.download_button(
                                     label="Descargar PDF generado", 
                                     data=pdf_data.getvalue(),
