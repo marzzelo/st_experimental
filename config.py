@@ -35,5 +35,6 @@ def page_config(title, icon, layout: Literal["centered", "wide"] = "centered"):
         st.page_link("pages/Calculadora_FTC.py", label="Frecuencia y Ciclos", icon="♾️")
         st.page_link("pages/Cálculo_Tracción_KC-390.py", label="Tracción KC-390", icon="🔧")
         st.page_link("pages/Data_Explorer.py", label="Explorador de Datos", icon="📊")
-        st.page_link("pages/Calibraciones.py", label="Calibraciones", icon="⚖️")
         st.page_link("pages/Rotations.py", label="Rotations", icon="🔄")
+        st.page_link("pages/Calibraciones.py", label="Calibraciones", icon="⚖️")
+        
