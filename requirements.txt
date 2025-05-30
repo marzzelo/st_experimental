@@ -13,3 +13,4 @@ openai
 openpyxl
 pillow
 fpdf
+reportlab
