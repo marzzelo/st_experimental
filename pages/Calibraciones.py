@@ -197,7 +197,7 @@ class CalibrationApp:
 
                 # Bucle principal: procesamiento para cada celda de carga identificada
                 for idx in celda_indices:
-                    st.title(f'Calibración para {denominaciones[idx]}')
+                    st.title(f'Calibración {denominaciones[idx]}')
 
                     # Definición de nombres de columnas para la celda actual
                     pat_0 = f'PAT{idx}_0'
@@ -273,7 +273,7 @@ class CalibrationApp:
 
                     ax_orig.set_xlabel(f"Patrón ({unidad_fuerza})")
                     ax_orig.set_ylabel(f"DUT ({unidad_fuerza})")
-                    ax_orig.set_title(f"Puntos de Medición Originales para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
+                    ax_orig.set_title(f"Puntos de Medición Originales {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
                     ax_orig.legend()
                     ax_orig.grid(True)
                     fig_orig.text(0.5, 0.91, f"Fecha de Calibración: {fecha_calibracion_str}", ha='center', fontsize=10, color='gray')
@@ -281,7 +281,7 @@ class CalibrationApp:
 
                     buf_orig = io.BytesIO()
                     fig_orig.savefig(buf_orig, format="png", dpi=200)
-                    st.download_button(f"Descargar gráfico de puntos originales para celda #{idx} (PNG)", data=buf_orig.getvalue(), file_name=f"puntos_originales_celda{idx}_{denominaciones[idx]}.png", mime="image/png")
+                    st.download_button(f"Descargar gráfico de puntos originales #{idx} (PNG)", data=buf_orig.getvalue(), file_name=f"puntos_originales_celda{idx}_{denominaciones[idx]}.png", mime="image/png")
                     all_plot_buffers.append((f"puntos_originales_celda{idx}_{denominaciones[idx]}.png", buf_orig))
                     st.divider()
 
@@ -320,7 +320,7 @@ class CalibrationApp:
                     # Configuración y visualización del gráfico de error absoluto
                     ax1.set_xlabel(f"Patrón ({unidad_fuerza})")
                     ax1.set_ylabel(f"Error absoluto ({unidad_fuerza})")
-                    ax1.set_title(f"Error Absoluto para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
+                    ax1.set_title(f"Error Absoluto {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
                     ax1.set_xticks(x)
                     ax1.legend()
                     ax1.grid()
@@ -329,7 +329,7 @@ class CalibrationApp:
                     st.pyplot(fig1)
                     buf1 = io.BytesIO()
                     fig1.savefig(buf1, format="png", dpi=200)
-                    st.download_button(f"Descargar gráfico de error absoluto para celda #{idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
+                    st.download_button(f"Descargar gráfico de error absoluto #{idx} (PNG)", data=buf1.getvalue(), file_name=f"error_absoluto_celda{idx}.png", mime="image/png")
                     all_plot_buffers.append((f"error_absoluto_celda{idx}_{denominaciones[idx]}.png", buf1))  # Agregar buffer a la lista
 
                     # Preparación de datos para la tabla de error absoluto
@@ -353,7 +353,7 @@ class CalibrationApp:
 
                     # Visualización de la tabla de error absoluto
                     tabla_abs = pd.DataFrame(tabla_abs_data)
-                    st.markdown(f'**Tabla de Error Absoluto para {denominaciones[idx]}**')
+                    st.markdown(f'**Tabla de Error Absoluto {denominaciones[idx]}**')
                     st.dataframe(tabla_abs.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
                     st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
                     st.divider()
@@ -398,7 +398,7 @@ class CalibrationApp:
                     # Configuración del gráfico de error relativo
                     ax2.set_xlabel(f"Patrón ({unidad_fuerza})")
                     ax2.set_ylabel("Error relativo (%)")
-                    ax2.set_title(f"Error Relativo para {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
+                    ax2.set_title(f"Error Relativo {denominaciones[idx]} - Patrón: {denominacion_patron}", pad=24)
                     fig2.text(0.5, 0.91, f"Fecha de Calibración: {fecha_calibracion_str}", ha='center', fontsize=10, color='gray')
                     ax2.axhline(0, color='black', linewidth=1)
                     # Líneas de tolerancia y área sombreada
@@ -425,7 +425,7 @@ class CalibrationApp:
                             -limite_tolerancia_rel,
                             limite_tolerancia_rel,
                             color='green',
-                            alpha=0.2,
+                            alpha=0.1,
                             label=f'Zona de tolerancia (+/-{limite_tolerancia_rel:.1f}%)'
                         )
                     else:  # Fallback si no hay datos de patrón
@@ -434,7 +434,7 @@ class CalibrationApp:
                             -limite_tolerancia_rel,
                             limite_tolerancia_rel,
                             color='green',
-                            alpha=0.2,
+                            alpha=0.1,
                             label=f'Zona de tolerancia (+/-{limite_tolerancia_rel:.1f}%)'
                         )
 
@@ -447,7 +447,7 @@ class CalibrationApp:
                     st.pyplot(fig2)
                     buf2 = io.BytesIO()
                     fig2.savefig(buf2, format="png", dpi=200)
-                    st.download_button(f"Descargar gráfico de error relativo para celda #{idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
+                    st.download_button(f"Descargar gráfico de error relativo #{idx} (PNG)", data=buf2.getvalue(), file_name=f"error_relativo_celda{idx}.png", mime="image/png")
                     all_plot_buffers.append((f"error_relativo_celda{idx}_{denominaciones[idx]}.png", buf2))  # Agregar buffer a la lista
 
                     # Preparación de datos para la tabla de error relativo
@@ -471,7 +471,7 @@ class CalibrationApp:
 
                     # Visualización de la tabla de error relativo
                     tabla_rel = pd.DataFrame(tabla_rel_data)
-                    st.markdown(f'**Tabla de Error Relativo para {denominaciones[idx]}**')
+                    st.markdown(f'**Tabla de Error Relativo {denominaciones[idx]}**')
                     st.dataframe(tabla_rel.style.format(precision=4).set_properties(**{'text-align': 'center'}), use_container_width=True)
                     st.info('Refs.: PAT=patrón, DUT=dispositivo, L=carga, U=descarga, Err=Error Absoluto o Relativo')
                     st.divider()

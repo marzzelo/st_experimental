@@ -9,6 +9,8 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
 import pandas as pd
 import numpy as np
 from reportlab.platypus import HRFlowable
+from datetime import datetime
+import getpass # Importar getpass
 
 class ReportGenerator:
     @staticmethod
@@ -353,10 +355,24 @@ class ReportGenerator:
             canvas.setFont('Helvetica', 9)
             canvas.drawString(doc.leftMargin, doc.height + doc.topMargin + 0.5*inch, header_text)
 
-            # Pie de página
-            footer_text = f"- Pág. {doc.page} -"
+            # Pie de página original
+            original_footer_text = f"- Pág. {doc.page} -"
             canvas.setFont('Helvetica', 9)
-            canvas.drawCentredString(doc.width/2 + doc.leftMargin, 0.5*inch, footer_text)
+            canvas.drawCentredString(doc.width/2 + doc.leftMargin, 0.75*inch, original_footer_text) # Subido un poco para dar espacio
+
+            # Línea horizontal para separar el nuevo pie de página
+            canvas.line(doc.leftMargin, 0.6*inch, doc.width + doc.leftMargin, 0.6*inch)
+
+            # Nuevo pie de página
+            current_date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            try:
+                logged_user = getpass.getuser()
+            except Exception:
+                logged_user = "<Usuario Desconocido>" # Fallback si getuser falla
+            preliminary_report_text = f"Informe Preliminar - Generado por {logged_user} - {current_date} - Laboratorio de Adquisición de Datos - FAdeA"
+            canvas.setFont('Helvetica', 7) # Fuente más pequeña para el texto largo
+            canvas.drawCentredString(doc.width/2 + doc.leftMargin, 0.35*inch, preliminary_report_text)
+            
             canvas.restoreState()
 
         try:
