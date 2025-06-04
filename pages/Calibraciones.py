@@ -8,7 +8,10 @@ import numpy as np
 from config import page_config
 import re
 import zipfile  # Importar zipfile
-from report_generator import ReportGenerator
+try:
+    from report_generator import ReportGenerator
+except ImportError:
+    ReportGenerator = None
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
