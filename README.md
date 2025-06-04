@@ -22,4 +22,3 @@ To install Experimental LabStore, follow these steps:
 
 ### Para solucionar error "Error on ghost text request: FetchError: The pending stream has been canceled (caused by: self signed certificate in certificate chain)" en Github Copilot: 
 $env:NODE_TLS_REJECT_UNAUTHORIZED="0"
-code .
