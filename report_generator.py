@@ -180,7 +180,7 @@ class ReportGenerator:
             def format_val(value, precision=4):
                 if pd.isna(value):
                     return "N/A"
-                if isinstance(value, (float, np.float_)):
+                if isinstance(value, (float, np.float64)):
                     return f"{value:.{precision}f}"
                 return str(value)
 

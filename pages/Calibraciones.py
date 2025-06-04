@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
+from io import BytesIO  # NUEVA IMPORTACIÓN
 from datetime import date
 import numpy as np
 from config import page_config
@@ -38,6 +39,24 @@ class CalibrationApp:
         self.date = date
         self.np = np
         self.report_generator = ReportGenerator()
+
+    def _generar_plantilla_excel(self):
+        """
+        Genera un archivo Excel de plantilla con las columnas necesarias para tres celdas.
+        """
+        columnas = [
+            'PAT1_0', 'DUT1_0', 'PAT1_R', 'DUT1_R',
+            'PAT2_0', 'DUT2_0', 'PAT2_R', 'DUT2_R',
+            'PAT3_0', 'DUT3_0', 'PAT3_R', 'DUT3_R'
+        ]
+        df_plantilla = self.pd.DataFrame(columns=columnas)
+        df_plantilla.loc[0] = [0] * len(columnas)  # NUEVA LÍNEA: Agrega una fila de ceros
+        
+        output = BytesIO()
+        with self.pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_plantilla.to_excel(writer, index=False, sheet_name='Calibracion')
+        output.seek(0)
+        return output
 
     def generar_informe_pdf(self, st_obj, fecha_calibracion_str, denominacion_patron, unidad_fuerza, limite_tolerancia_rel, celda_indices, denominaciones, df_calibracion, all_plot_buffers_with_names, n_requerimiento=None, documentacion_aplicada=None, ficha_dut_file=None, ficha_patron_file=None, foto_montaje_file=None):
         """
@@ -138,6 +157,15 @@ class CalibrationApp:
                 - `PAT2_0`, `DUT2_0`, `PAT2_R`, `DUT2_R`
                 - `PAT3_0`, `DUT3_0`, `PAT3_R`, `DUT3_R`
             """)
+        
+        # Botón para descargar la plantilla Excel
+        plantilla_excel_buffer = self._generar_plantilla_excel()
+        st.download_button(
+            label="Descargar plantilla de Excel",
+            data=plantilla_excel_buffer,
+            file_name="plantilla_calibracion_celdas.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
         # Carga del archivo Excel
         uploaded_file = st.file_uploader("Selecciona un archivo Excel de calibración", type=["xlsx"])
