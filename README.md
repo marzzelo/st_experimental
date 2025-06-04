@@ -16,7 +16,7 @@ To install Experimental LabStore, follow these steps:
 
 ## Usage
 1. Start the server: `python -m streamlit run .\lab.py`
-2. Open your web browser and navigate to `http://localhost:5000` 
+2. Open your web browser and navigate to `http://localhost:8501`
 3. You can now interact with the system, add inventory items, track usage, and automate restocking routines. For more details, please refer to the user manual included in the project documentation.
 
 
