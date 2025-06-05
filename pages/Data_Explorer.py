@@ -3,6 +3,7 @@ import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from datetime import datetime, time, date, timedelta
 
 from config import page_config
 import seaborn as sns
@@ -200,11 +201,13 @@ class DataExplorer:
 
             st.checkbox("Resetear Límites al Graficar/Filtrar", key="chk_reset")
             save_data = st.checkbox("Guardar dataset con columnas y límites seleccionados (al Graficar)")
-            convert_x_time = st.checkbox(
+
+            col_convert, col_unit = st.columns(2)
+            convert_x_time = col_convert.checkbox(
                 "Convertir columna X a hh:mm:ss.mmm",
                 key="chk_convert_x_time",
             )
-            time_unit = st.selectbox(
+            time_unit = col_unit.selectbox(
                 "Unidad de tiempo de la primera columna",
                 [
                     "10^(-6)s",
@@ -217,6 +220,26 @@ class DataExplorer:
                 ],
                 index=4,
                 key="time_unit_select",
+            )
+
+            col_date, col_time = st.columns(2)
+            offset_date = col_date.date_input(
+                "Fecha inicial eje X",
+                value=st.session_state.get("offset_date", datetime.today().date()),
+                key="offset_date",
+            )
+            offset_time = col_time.time_input(
+                "Hora inicial eje X",
+                value=st.session_state.get("offset_time", time(0, 0)),
+                key="offset_time",
+            )
+            st.session_state.offset_date = offset_date
+            st.session_state.offset_time = offset_time
+            offset_seconds = (
+                offset_time.hour * 3600
+                + offset_time.minute * 60
+                + offset_time.second
+                + offset_time.microsecond / 1e6
             )
 
             col_buttons = st.columns([3,1,2,7], vertical_alignment="bottom")
@@ -240,7 +263,7 @@ class DataExplorer:
                     x_series_masked = data.loc[user_mask, x_col]
                     if convert_x_time:
                         factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
-                        x_series_masked = x_series_masked * factor
+                        x_series_masked = x_series_masked * factor + offset_seconds
 
                     temp_df_plot = pd.DataFrame({
                         'x': x_series_masked,
@@ -364,7 +387,7 @@ class DataExplorer:
                         if convert_x_time:
                             factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
                             current_series_data_bounded[x_col] = (
-                                current_series_data_bounded[x_col] * factor
+                                current_series_data_bounded[x_col] * factor + offset_seconds
                             )
 
                         if current_series_data_bounded.empty:
