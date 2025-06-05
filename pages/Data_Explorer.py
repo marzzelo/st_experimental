@@ -13,15 +13,6 @@ from utils import ss_get, ss_set
 
 
 NOPLOT_COLS = ["t", "ts", "n", "time", "timespan", "tspan", "sample#", "sample"]
-TIME_UNIT_FACTORS = {
-    "10^(-6)s": 1e-6,
-    "10^(-3)s": 1e-3,
-    "10^(-2)s": 1e-2,
-    "10^(-1)s": 1e-1,
-    "1s": 1.0,
-    "10s": 10.0,
-    "1min": 60.0,
-}
 
 
 def format_seconds_hmsms(seconds: float) -> str:
@@ -207,20 +198,14 @@ class DataExplorer:
                 "Convertir columna X a hh:mm:ss.mmm",
                 key="chk_convert_x_time",
             )
-            time_unit = col_unit.selectbox(
-                "Unidad de tiempo de la primera columna",
-                [
-                    "10^(-6)s",
-                    "10^(-3)s",
-                    "10^(-2)s",
-                    "10^(-1)s",
-                    "1s",
-                    "10s",
-                    "1min",
-                ],
-                index=4,
-                key="time_unit_select",
+            sample_period_us = col_unit.number_input(
+                "Periodo de muestreo (μs)",
+                min_value=1.0,
+                value=st.session_state.get("sampling_period_us", 1_000.0),
+                step=1.0,
+                key="sampling_period_us_input",
             )
+            st.session_state["sampling_period_us"] = sample_period_us
 
             col_date, col_time = st.columns(2)
             offset_date = col_date.date_input(
@@ -260,8 +245,9 @@ class DataExplorer:
                     y_series_masked = data.loc[user_mask, col]
                     x_series_masked = data.loc[user_mask, x_col]
                     if convert_x_time:
-                        factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
-                        x_series_masked = x_series_masked * factor + offset_seconds
+                        indices = data.loc[user_mask].index
+                        period_s = sample_period_us / 1e6
+                        x_series_masked = indices * period_s + offset_seconds
 
                     temp_df_plot = pd.DataFrame({
                         'x': x_series_masked,
@@ -383,9 +369,9 @@ class DataExplorer:
 
                         current_series_data_bounded.dropna(subset=[col_y_axis_name], inplace=True)
                         if convert_x_time:
-                            factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
+                            period_s = sample_period_us / 1e6
                             current_series_data_bounded[x_col] = (
-                                current_series_data_bounded[x_col] * factor + offset_seconds
+                                current_series_data_bounded.index * period_s + offset_seconds
                             )
 
                         if current_series_data_bounded.empty:
