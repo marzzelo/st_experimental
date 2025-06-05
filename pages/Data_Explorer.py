@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 
 from config import page_config
 import seaborn as sns
@@ -11,6 +12,24 @@ from utils import ss_get, ss_set
 
 
 NOPLOT_COLS = ["t", "ts", "n", "time", "timespan", "tspan", "sample#", "sample"]
+TIME_UNIT_FACTORS = {
+    "10^(-6)s": 1e-6,
+    "10^(-3)s": 1e-3,
+    "10^(-2)s": 1e-2,
+    "10^(-1)s": 1e-1,
+    "1s": 1.0,
+    "10s": 10.0,
+    "1min": 60.0,
+}
+
+
+def format_seconds_hmsms(seconds: float) -> str:
+    td = pd.to_timedelta(seconds, unit="s")
+    total_seconds = td.total_seconds()
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    sec = total_seconds % 60
+    return f"{hours:02d}:{minutes:02d}:{sec:06.3f}"
 
 class DataExplorer:
     def __init__(self):
@@ -181,6 +200,24 @@ class DataExplorer:
 
             st.checkbox("Resetear Límites al Graficar/Filtrar", key="chk_reset")
             save_data = st.checkbox("Guardar dataset con columnas y límites seleccionados (al Graficar)")
+            convert_x_time = st.checkbox(
+                "Convertir columna X a hh:mm:ss.mmm",
+                key="chk_convert_x_time",
+            )
+            time_unit = st.selectbox(
+                "Unidad de tiempo de la primera columna",
+                [
+                    "10^(-6)s",
+                    "10^(-3)s",
+                    "10^(-2)s",
+                    "10^(-1)s",
+                    "1s",
+                    "10s",
+                    "1min",
+                ],
+                index=4,
+                key="time_unit_select",
+            )
 
             col_buttons = st.columns([3,1,2,7], vertical_alignment="bottom")
             submitted_plot = col_buttons[0].form_submit_button("Graficar")
@@ -201,6 +238,9 @@ class DataExplorer:
                     # Asegurar que data.loc[user_mask, col] y data.loc[user_mask, x_col] se manejen correctamente
                     y_series_masked = data.loc[user_mask, col]
                     x_series_masked = data.loc[user_mask, x_col]
+                    if convert_x_time:
+                        factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
+                        x_series_masked = x_series_masked * factor
 
                     temp_df_plot = pd.DataFrame({
                         'x': x_series_masked,
@@ -229,7 +269,13 @@ class DataExplorer:
                         plot_y_min = combined_y_data.min()
                         plot_y_max = combined_y_data.max()
                 
-                ax.set_xlabel(x_col)
+                if convert_x_time:
+                    ax.set_xlabel(f"{x_col} (hh:mm:ss.mmm)")
+                    ax.xaxis.set_major_formatter(
+                        FuncFormatter(lambda v, _: format_seconds_hmsms(v))
+                    )
+                else:
+                    ax.set_xlabel(x_col)
                 ax.set_ylabel('Value')
                 ax.set_title("Data Plot")
                 ax.set_xlim(plot_x_min, plot_x_max)
@@ -313,9 +359,14 @@ class DataExplorer:
                         current_series_data_bounded = source_df_for_plot[
                             (source_df_for_plot[x_col] >= x_lower) & (source_df_for_plot[x_col] <= x_upper)
                         ][[x_col, col_y_axis_name]].copy()
-                        
+
                         current_series_data_bounded.dropna(subset=[col_y_axis_name], inplace=True)
-                        
+                        if convert_x_time:
+                            factor = TIME_UNIT_FACTORS.get(time_unit, 1.0)
+                            current_series_data_bounded[x_col] = (
+                                current_series_data_bounded[x_col] * factor
+                            )
+
                         if current_series_data_bounded.empty:
                             st.warning(f"La serie '{plot_series_label}' no tiene datos válidos en el rango X después de NaNs.")
                             continue
@@ -338,7 +389,13 @@ class DataExplorer:
                             plot_y_min_f = combined_y_data_f.min()
                             plot_y_max_f = combined_y_data_f.max()
                     
-                    ax.set_xlabel(x_col)
+                    if convert_x_time:
+                        ax.set_xlabel(f"{x_col} (hh:mm:ss.mmm)")
+                        ax.xaxis.set_major_formatter(
+                            FuncFormatter(lambda v, _: format_seconds_hmsms(v))
+                        )
+                    else:
+                        ax.set_xlabel(x_col)
                     ax.set_ylabel('Value')
                     ax.set_title("Gráfico de Datos (con columnas filtradas y originales)")
                     ax.set_xlim(plot_x_min_f, plot_x_max_f)
