@@ -77,6 +77,14 @@ class DataExplorer:
         
         # Display the histogram of each column
         st.subheader("Histograms", divider="violet")
+        bins = st.number_input(
+            "Cantidad de bins",
+            min_value=1,
+            value=st.session_state.get("hist_bins", 20),
+            step=1,
+            key="hist_bins_input",
+        )
+        st.session_state["hist_bins"] = bins
         cols = st.columns(3)
         for i, col_name in enumerate(self.data.columns):
             if col_name.lower() in NOPLOT_COLS:
@@ -88,7 +96,7 @@ class DataExplorer:
                 continue
             with cols[i % 3]:
                 fig, ax = plt.subplots()
-                ax.hist(self.data[col_name], bins=20, alpha=0.7)
+                ax.hist(self.data[col_name], bins=int(bins), alpha=0.7)
                 ax.set_title(f"Histogram of {col_name}")
                 ax.set_xlabel(col_name)
                 ax.set_ylabel("Frequency")
