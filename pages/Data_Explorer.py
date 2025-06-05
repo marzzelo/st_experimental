@@ -233,8 +233,6 @@ class DataExplorer:
                 value=st.session_state.get("offset_time", time(0, 0)),
                 key="offset_time",
             )
-            st.session_state.offset_date = offset_date
-            st.session_state.offset_time = offset_time
             offset_seconds = (
                 offset_time.hour * 3600
                 + offset_time.minute * 60
