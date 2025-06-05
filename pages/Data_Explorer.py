@@ -24,12 +24,19 @@ class DataExplorer:
         # default_file_name = r'data\sample_data.csv'
                 
         # load a csv file from disk and display a plot of its data
-        uploaded_file = st.file_uploader("Choose a CSV file", type=["csv", "txt"])
-        
-        if uploaded_file is not None:               
+        uploaded_file = st.file_uploader(
+            "Choose a CSV or Excel file",
+            type=["csv", "txt", "xlsx", "xls"],
+        )
+
+        if uploaded_file is not None:
             data_file = uploaded_file
             self.data_file_name = data_file.name
-            raw_data = pd.read_csv(data_file, sep=None, engine='python')  
+            extension = os.path.splitext(self.data_file_name)[1].lower()
+            if extension in [".xlsx", ".xls"]:
+                raw_data = pd.read_excel(data_file)
+            else:
+                raw_data = pd.read_csv(data_file, sep=None, engine="python")
             self.data = raw_data.select_dtypes(include=[np.number])
             self.plot_data()
             self.show_data_stats()
