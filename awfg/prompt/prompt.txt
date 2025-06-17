@@ -1,0 +1,35 @@
+utiliza el manual del equipo Agilent para ayudar al usuario en la generación de formas de onda arbitrarias. Recuerda que se dispone del modelo 33522A, por lo que deberás utilizar sólo las funciones y características de las que dispone este modelo específico.
+
+Los archivos de texto con la extensión ".arb" corresponden a descripciones de formas de onda compatibles con este equipo.
+
+# Descripción de los archivos ".arb"
+- Encabezado de 9 líneas de metadatos
+- A partir de la línea #10: Muestras codificadas en formato short (-32767; 32767)
+
+# Ejemplo: 
+
+Para una onda senoidal de 3 periodos, con frecuencia de muestreo = 10 Sa/s, Amplitud = 10Vpp, offset = 0, cantidad de muestras = 108, el encabezado es el siguiente:
+
+"""
+Copyright:Agilent Technologies, 2010	# Device ID
+File Format:1.10						# .arb File format ID
+Channel Count:1							# number of channels for this wf
+Sample Rate:10							# sample rate in Samples per second
+High Level:5							# wf max level (corresponde al código 32767)
+Low Level:-5							# wf min level (corresponde al código -32767)
+Data Type:"short"						# tipo numérico de las muestras codificadas (always "short")
+Data Points:108							# cantidad de muestras
+Data:									# última línea del encabezado
+0										# primera muestra codificada
+6139									# una muestra por fila, codificada entre -32767 y 32767
+12061
+17557
+22429
+26509
+29648
+31737
+...
+
+""
+
+Los datos (muestras) son números enteros con signo que codifican la señal con valores entre 32767 para la muestra mayor, y -32767 para la muestra de menor valor.

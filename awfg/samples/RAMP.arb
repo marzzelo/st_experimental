@@ -1,0 +1,19 @@
+Copyright:Agilent Technologies, 2010
+File Format:1.10
+Channel Count:1
+Sample Rate:1000000
+High Level:1
+Low Level:-1
+Data Type:"short"
+Data Points:10
+Data:
+-32767
+-25485
+-18203
+-10922
+-3640
+3640
+10922
+18203
+25485
+32767
