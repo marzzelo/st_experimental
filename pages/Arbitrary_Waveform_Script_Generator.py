@@ -4,6 +4,17 @@ import streamlit as st
 from config import page_config
 
 
+
+def encode_voltages(voltages: pd.Series) -> pd.Series:
+    """Return a Series with voltages linearly mapped to [-32767, 32767]."""
+    v_max = voltages.max()
+    v_min = voltages.min()
+    if v_max == v_min:
+        return pd.Series(0, index=voltages.index, dtype=int)
+    scale = 65534 / (v_max - v_min)
+    codes = ((voltages - v_min) * scale - 32767).round().astype(int)
+    return codes
+
 def validate_format(df: pd.DataFrame) -> str | None:
     if df.shape[1] < 2 or df.empty:
         return "El archivo debe tener al menos dos columnas y una fila de datos."
@@ -83,6 +94,10 @@ class AWScriptGenerator:
             v_max = voltages.max()
             v_min = voltages.min()
 
+            codes = encode_voltages(voltages)
+            data.iloc[:, 1] = codes
+            code_df = pd.DataFrame({"Code": codes})
+
             st.success(
                 f"Formato correcto. {sample_count} muestras detectadas."
             )
@@ -96,6 +111,8 @@ class AWScriptGenerator:
             st.markdown(f"- Voltaje máximo: **{v_max:.3f} V**")
             st.markdown(f"- Voltaje mínimo: **{v_min:.3f} V**")
             st.dataframe(volt_df.head(), use_container_width=True)
+            st.dataframe(code_df.head(), use_container_width=True)
+
 
 if __name__ == "__main__":
     AWScriptGenerator()
