@@ -4,6 +4,17 @@ import streamlit as st
 from config import page_config
 
 
+def encode_voltages(voltages: pd.Series) -> pd.Series:
+    """Return a Series with voltages linearly mapped to [-32767, 32767]."""
+    v_max = voltages.max()
+    v_min = voltages.min()
+    if v_max == v_min:
+        return pd.Series(0, index=voltages.index, dtype=int)
+    scale = 65534 / (v_max - v_min)
+    codes = ((voltages - v_min) * scale - 32767).round().astype(int)
+    return codes
+
+
 def validate_format(df: pd.DataFrame) -> str | None:
     if df.shape[1] < 2 or df.empty:
         return "El archivo debe tener al menos dos columnas y una fila de datos."
@@ -62,6 +73,10 @@ class AWScriptGenerator:
 
             time_unit = str(df.iloc[0, 0]).strip()
             volt_unit = str(df.iloc[0, 1]).strip()
+            codes = encode_voltages(voltages)
+            data.iloc[:, 1] = codes
+            code_df = pd.DataFrame({"Code": codes})
+            st.dataframe(code_df.head(), use_container_width=True)
 <<<<<<< codex/add-arbitrary-waveform-script-generator-page
             data = df.iloc[1:, :2].astype(float)
             sample_count = len(data)
