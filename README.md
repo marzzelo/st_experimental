@@ -16,6 +16,7 @@ Experimental LabStore es una aplicación modular basada en Streamlit que reúne 
   - **Cálculo_Tracción_KC-390.py** – Calcula la fuerza de tracción a partir de diámetros y durezas, con opción de guardar resultados en PDF.
   - **Calculadora_de_Tiempo.py** – Calcula la fecha y hora de finalización de un ensayo a partir de la hora de inicio y la duración.
   - **Arbitrary_Waveform_Script_Generator.py** – Genera scripts de forma de onda a partir de archivos Excel, calcula frecuencia de muestreo y codifica voltajes.
+
   - **wip/** – Contiene módulos en desarrollo (por ejemplo, Graficador e Instrumentos).
 - **utils.py** y **report_generator.py** ofrecen funciones de apoyo para el manejo de `st.session_state` y la generación de informes en PDF.
 - Los directorios **data/** y **resources/** incluyen archivos de ejemplo y material de apoyo como imágenes o tablas de dureza Rockwell.

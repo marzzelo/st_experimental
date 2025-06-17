@@ -1,5 +1,3 @@
-utiliza el manual del equipo Agilent para ayudar al usuario en la generación de formas de onda arbitrarias. Recuerda que se dispone del modelo 33522A, por lo que deberás utilizar sólo las funciones y características de las que dispone este modelo específico.
-
 Los archivos de texto con la extensión ".arb" corresponden a descripciones de formas de onda compatibles con este equipo.
 
 # Descripción de los archivos ".arb"

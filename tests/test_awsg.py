@@ -29,7 +29,6 @@ def test_validate_format_non_numeric():
     ])
     assert "num\u00e9ricos" in validate_format(df)
 
-
 def test_encode_voltages_range():
     volts = pd.Series([-1, 0, 1])
     codes = encode_voltages(volts)
@@ -42,3 +41,4 @@ def test_encode_voltages_constant():
     volts = pd.Series([2.5, 2.5])
     codes = encode_voltages(volts)
     assert (codes == 0).all()
+

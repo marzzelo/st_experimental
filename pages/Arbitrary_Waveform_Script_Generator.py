@@ -4,6 +4,7 @@ import streamlit as st
 from config import page_config
 
 
+
 def encode_voltages(voltages: pd.Series) -> pd.Series:
     """Return a Series with voltages linearly mapped to [-32767, 32767]."""
     v_max = voltages.max()
@@ -13,7 +14,6 @@ def encode_voltages(voltages: pd.Series) -> pd.Series:
     scale = 65534 / (v_max - v_min)
     codes = ((voltages - v_min) * scale - 32767).round().astype(int)
     return codes
-
 
 def validate_format(df: pd.DataFrame) -> str | None:
     if df.shape[1] < 2 or df.empty:
@@ -73,6 +73,7 @@ class AWScriptGenerator:
 
             time_unit = str(df.iloc[0, 0]).strip()
             volt_unit = str(df.iloc[0, 1]).strip()
+
             data = df.iloc[1:, :2].astype(float)
             sample_count = len(data)
 
@@ -92,6 +93,7 @@ class AWScriptGenerator:
             volt_df = pd.DataFrame({"Voltage (V)": voltages})
             v_max = voltages.max()
             v_min = voltages.min()
+
             codes = encode_voltages(voltages)
             data.iloc[:, 1] = codes
             code_df = pd.DataFrame({"Code": codes})
@@ -101,6 +103,7 @@ class AWScriptGenerator:
             )
             st.markdown(f"- Unidad de tiempo: **{time_unit}**")
             st.markdown(f"- Unidad de voltaje: **{volt_unit}**")
+
             if sample_freq is not None:
                 st.markdown(f"- Frecuencia de muestreo: **{sample_freq:.3f} Sa/s**")
             else:
