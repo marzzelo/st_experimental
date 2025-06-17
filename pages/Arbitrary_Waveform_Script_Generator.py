@@ -62,15 +62,48 @@ class AWScriptGenerator:
 
             time_unit = str(df.iloc[0, 0]).strip()
             volt_unit = str(df.iloc[0, 1]).strip()
+<<<<<<< codex/add-arbitrary-waveform-script-generator-page
+            data = df.iloc[1:, :2].astype(float)
+            sample_count = len(data)
+
+            time_factors = {"us": 1e-6, "ms": 1e-3, "s": 1.0}
+            volt_factors = {"uV": 1e-6, "mV": 1e-3, "V": 1.0}
+
+            if sample_count >= 2:
+                dt = data.iloc[1, 0] - data.iloc[0, 0]
+                try:
+                    sample_freq = 1.0 / (dt * time_factors[time_unit])
+                except ZeroDivisionError:
+                    sample_freq = float("inf")
+            else:
+                sample_freq = None
+
+            voltages = data.iloc[:, 1] * volt_factors[volt_unit]
+            volt_df = pd.DataFrame({"Voltage (V)": voltages})
+            v_max = voltages.max()
+            v_min = voltages.min()
+
+=======
             data = df.iloc[1:, :2]
             sample_count = len(data)
 
+>>>>>>> main
             st.success(
                 f"Formato correcto. {sample_count} muestras detectadas."
             )
             st.markdown(f"- Unidad de tiempo: **{time_unit}**")
             st.markdown(f"- Unidad de voltaje: **{volt_unit}**")
+<<<<<<< codex/add-arbitrary-waveform-script-generator-page
+            if sample_freq is not None:
+                st.markdown(f"- Frecuencia de muestreo: **{sample_freq:.3f} Sa/s**")
+            else:
+                st.markdown("- Frecuencia de muestreo: N/A")
+            st.markdown(f"- Voltaje máximo: **{v_max:.3f} V**")
+            st.markdown(f"- Voltaje mínimo: **{v_min:.3f} V**")
+            st.dataframe(volt_df.head(), use_container_width=True)
+=======
             st.dataframe(data, use_container_width=True)
+>>>>>>> main
 
 
 if __name__ == "__main__":
