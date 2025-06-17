@@ -34,6 +34,8 @@ class PlayStoreApp:
                 st.page_link('pages/Calculadora_FTC.py', label='Frecuencia y Ciclos', icon="♾️", help=None, disabled=False, use_container_width=True)
             with st.container(height=60, border=True):
                 st.page_link('pages/Calibraciones.py', label='Calibraciones', icon="⚖️", help=None, disabled=False, use_container_width=True)
+            with st.container(height=60, border=True):
+                st.page_link('pages/Arbitrary_Waveform_Script_Generator.py', label='AWF Script Generator', icon="📜", help=None, disabled=False, use_container_width=True)
            
         st.markdown("---")
         st.markdown('<h3>Contacto:</h3>', unsafe_allow_html=True)
