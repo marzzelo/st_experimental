@@ -15,6 +15,7 @@ Experimental LabStore es una aplicación modular basada en Streamlit que reúne 
   - **Calibraciones.py** – Herramienta completa para calibrar celdas de carga. Genera gráficos, calcula errores y produce informes PDF detallados.
   - **Cálculo_Tracción_KC-390.py** – Calcula la fuerza de tracción a partir de diámetros y durezas, con opción de guardar resultados en PDF.
   - **Calculadora_de_Tiempo.py** – Calcula la fecha y hora de finalización de un ensayo a partir de la hora de inicio y la duración.
+  - **Arbitrary_Waveform_Script_Generator.py** – Genera scripts de forma de onda a partir de archivos Excel, calcula frecuencia de muestreo y codifica voltajes.
   - **wip/** – Contiene módulos en desarrollo (por ejemplo, Graficador e Instrumentos).
 - **utils.py** y **report_generator.py** ofrecen funciones de apoyo para el manejo de `st.session_state` y la generación de informes en PDF.
 - Los directorios **data/** y **resources/** incluyen archivos de ejemplo y material de apoyo como imágenes o tablas de dureza Rockwell.
@@ -54,6 +55,7 @@ Experimental LabStore is a modular Streamlit application that gathers various to
   - **Calibraciones.py** – Full load cell calibration tool. Creates charts, computes errors and builds detailed PDF reports.
   - **Cálculo_Tracción_KC-390.py** – Calculates traction force from diameter and hardness values with an option to save results in PDF.
   - **Calculadora_de_Tiempo.py** – Computes the end date and time of a test from its start time and duration.
+  - **Arbitrary_Waveform_Script_Generator.py** – Generates waveform scripts from Excel files, computes sampling frequency and encodes voltages.
   - **wip/** – Contains work-in-progress modules such as Graficador and Instrumentos.
 - **utils.py** and **report_generator.py** provide helpers for `st.session_state` management and PDF report generation.
 - The **data/** and **resources/** folders include sample files and supporting assets like images or Rockwell hardness tables.

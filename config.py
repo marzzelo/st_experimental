@@ -37,4 +37,5 @@ def page_config(title, icon, layout: Literal["centered", "wide"] = "centered"):
         st.page_link("pages/Data_Explorer.py", label="Explorador de Datos", icon="📊")
         st.page_link("pages/Rotations.py", label="Rotations", icon="🔄")
         st.page_link("pages/Calibraciones.py", label="Calibraciones", icon="⚖️")
+        st.page_link("pages/Arbitrary_Waveform_Script_Generator.py", label="AWF Script Generator", icon="📜")
         
