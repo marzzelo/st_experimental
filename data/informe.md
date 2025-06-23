@@ -12,7 +12,7 @@
 El método **ISL** (Incremental Step Load) contenido en el Anexo A3 de ASTM F519-23 reemplaza las 200 h de carga sostenida del ensayo estándar por **20 escalones de carga creciente** mantenidos ≤ 24 h.
 
 * **Estructura:** 15 escalones de 1 h con incrementos de 5 % F (NFS) hasta 75 % F, seguidos de 5 escalones de 2 h hasta 100 % F.
-* **Criterio de aprobación:** la probeta supera el ensayo si soporta ≥ 90 % F durante 2 h sin pérdida de carga > 5 %.
+* **Criterio de aprobación:** la probeta supera el ensayo si soporta ≥ 90 % F durante 2 h sin fisuras o rotura.
 * **Ahorro de tiempo:** 24 h frente a 200 h (89 % de reducción), permitiendo **liberar bancadas nueve veces más rápido** y aumentar la frecuencia de auditorías de recubrimientos o procesos térmicos.
 * **Equivalencia estadística:** estudios interlaboratorio demuestran que llegar al 90 % F en ISL correlaciona con la superación del ensayo de 200 h.
 
@@ -41,8 +41,8 @@ El gráfico precedente muestra la serie de 20 escalones: los primeros 15 increme
 1. **Generación de forma de onda:** cargar *ISL\_curve\_0p1Hz.csv* (adjunto) en el Agilent 33522A y ajustar.
 2. **Escalado de tensión:** para mapear 0–100 % F.
 3. **Sincronización:** el software MTS inicia la reproducción de la forma de onda y arranca la adquisición de datos.
-4. **Evaluación en línea:** se monitoriza la caída de fuerza; si supera 5 % respecto al set-point, se marca el umbral de agrietamiento.
-5. **Criterio de aceptación:** ausencia de caída ≥ 5 % hasta ≥ 90 % F durante 2 h.
+4. **Evaluación en línea:** se monitoriza la caída de fuerza para detectar fisura o rotura de la probeta.
+5. **Criterio de aceptación:** ausencia de fisuras o rotura hasta ≥ 90 % F durante 2 h.
 
 ---
 
