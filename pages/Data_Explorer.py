@@ -80,7 +80,7 @@ class DataExplorer:
         bins = st.number_input(
             "Cantidad de bins",
             min_value=1,
-            value=st.session_state.get("hist_bins", 20),
+            value=st.session_state.get("hist_bins", 30),
             step=1,
             key="hist_bins_input",
         )
@@ -153,6 +153,7 @@ class DataExplorer:
         if 'all_plot_selected_state' not in st.session_state:
             st.session_state.all_plot_selected_state = True 
 
+        # rótulo para el botton "Check/Uncheck All"
         toggle_button_label = "Uncheck All" if st.session_state.all_plot_selected_state else "Check All"
         
         if st.button(toggle_button_label, key="toggle_all_plot_checkboxes_button"):
@@ -163,6 +164,7 @@ class DataExplorer:
                     continue
                 st.session_state[f"plot_cb_{col_to_toggle}"] = current_master_checkbox_state
         
+        # Checkboxes de columnas
         selected_cols = []
         checkbox_cols_layout = st.columns(6)
         i = 0
@@ -178,7 +180,6 @@ class DataExplorer:
             if is_checked:
                 selected_cols.append(col_loop_var)
             i += 1
-        # --- FIN DE LA SECCIÓN MOVIDA ---
 
         with st.form("data_processing_form"): # Clave de formulario única
             st.subheader('Procesamiento y Filtrado de Datos', divider=True)
@@ -198,8 +199,13 @@ class DataExplorer:
                 
             st.markdown("---")
 
-            st.checkbox("Resetear Límites al Graficar/Filtrar", key="chk_reset")
-            save_data = st.checkbox("Guardar dataset con columnas y límites seleccionados (al Graficar)")
+            col_chk1, col_chk2, col_chk3 = st.columns(3)
+            with col_chk1:
+                st.checkbox("Resetear Límites al Graficar/Filtrar", key="chk_reset")
+            with col_chk2:
+                save_data = st.checkbox("Guardar dataset con columnas y límites seleccionados (al Graficar)", key="chk_save")
+            with col_chk3:
+                st.checkbox("Iniciar muestras en 0", key="chk_start_zero")
 
             col_convert, col_unit = st.columns(2)
             convert_x_time = col_convert.checkbox(
@@ -232,6 +238,17 @@ class DataExplorer:
                 + offset_time.second
                 + offset_time.microsecond / 1e6
             )
+            # ESCALADO
+            col_scale_time, col_scale_rest, col_dec = st.columns(3)
+            scale_time = col_scale_time.number_input(
+                "Factor de escala tiempo", value=1.0, step=0.01, key="scale_time"
+            )
+            scale_rest = col_scale_rest.number_input(
+                "Factor de escala columnas", value=1.0, step=0.01, key="scale_rest"
+            )
+            decimals = col_dec.number_input(
+                "Número de decimales", min_value=0, value=2, step=1, key="decimals"
+            )
 
             col_buttons = st.columns([3,1,2,7], vertical_alignment="bottom")
             submitted_plot = col_buttons[0].form_submit_button("Graficar")
@@ -240,6 +257,7 @@ class DataExplorer:
             st.session_state.window_size = window_size # Guardar en session state para persistencia
 
             if submitted_plot:
+                start_zero = st.session_state.get('chk_start_zero', False)
                 # Filtrar los datos basados en los límites del eje X ingresados por el usuario
                 user_mask = (data[x_col] >= x_lower) & (data[x_col] <= x_upper)
                 fig, ax = plt.subplots(figsize=(20, 10))
@@ -249,18 +267,22 @@ class DataExplorer:
                 any_data_plotted_for_limits = False
 
                 for col in selected_cols:
-                    # Asegurar que data.loc[user_mask, col] y data.loc[user_mask, x_col] se manejen correctamente
                     y_series_masked = data.loc[user_mask, col]
                     x_series_masked = data.loc[user_mask, x_col]
                     if convert_x_time:
                         indices = data.loc[user_mask].index
                         period_s = sample_period_us / 1e6
                         x_series_masked = indices * period_s + offset_seconds
+                    # aplicar escalado
+                    x_series_masked = x_series_masked * scale_time
+                    y_series_masked = y_series_masked * scale_rest
 
                     temp_df_plot = pd.DataFrame({
                         'x': x_series_masked,
                         'y': y_series_masked
                     }).dropna(subset=['y'])
+                    if start_zero:
+                        temp_df_plot['x'] = temp_df_plot['x'] - temp_df_plot['x'].min()
 
                     if not temp_df_plot.empty:
                         ax.plot(temp_df_plot['x'], temp_df_plot['y'], label=col)
@@ -300,10 +322,19 @@ class DataExplorer:
                     ax.legend()
                 st.pyplot(fig)
 
+                # Preparar descarga
                 if save_data:
                     columns_to_save = [x_col] + selected_cols
-                    # Usar la máscara original basada en la entrada del usuario para guardar los datos
-                    selected_data_to_save = data.loc[user_mask, columns_to_save]
+                    selected_data_to_save = data.loc[user_mask, columns_to_save].copy()
+                    if st.session_state.get('chk_start_zero', False):
+                        selected_data_to_save[x_col] = selected_data_to_save[x_col] - selected_data_to_save[x_col].min()
+                    # aplicar escalado a CSV seleccionado
+                    selected_data_to_save[x_col] = selected_data_to_save[x_col] * st.session_state.get('scale_time', 1.0)
+                    for c in selected_cols:
+                        selected_data_to_save[c] = selected_data_to_save[c] * st.session_state.get('scale_rest', 1.0)
+                    # redondear según decimales
+                    dec = st.session_state.get('decimals', 2)
+                    selected_data_to_save = selected_data_to_save.round(dec)
                     csv = selected_data_to_save.to_csv(index=False).encode('utf-8')
                     original_name = os.path.basename(self.data_file_name)
                     output_file_name = f"selected_{original_name}"
@@ -320,6 +351,7 @@ class DataExplorer:
                     st.experimental_rerun()
 
             if submitted_filter:
+                start_zero = st.session_state.get('chk_start_zero', False)
                 st.write("Aplicando filtro de media móvil (ventana {})...".format(window_size))
                 cols_to_filter = selected_cols_for_filter
 
@@ -431,8 +463,18 @@ class DataExplorer:
         # Check session state outside the form to display the download button
         if 'filtered_data_df' in st.session_state:
             filtered_df_to_download = st.session_state['filtered_data_df']
-            download_name = st.session_state['filtered_data_name']
-            csv = filtered_df_to_download.to_csv(index=False).encode('utf-8')
+            # aplicar desplazamiento y escalado a datos filtrados
+            df_fd = filtered_df_to_download.copy()
+            if st.session_state.get('chk_start_zero', False):
+                x0 = df_fd.columns[0]
+                df_fd[x0] = df_fd[x0] - df_fd[x0].min()
+            df_fd[df_fd.columns[0]] = df_fd[df_fd.columns[0]] * st.session_state.get('scale_time', 1.0)
+            for c in df_fd.columns[1:]:
+                df_fd[c] = df_fd[c] * st.session_state.get('scale_rest', 1.0)
+            # redondear según decimales
+            dec = st.session_state.get('decimals', 2)
+            df_fd = df_fd.round(dec)
+            csv = df_fd.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="Descargar datos filtrados como CSV",
                 data=csv,
@@ -445,17 +487,23 @@ class DataExplorer:
         if 'selected_data_df' in st.session_state:
             selected_df_to_download = st.session_state['selected_data_df']
             download_name = st.session_state['selected_data_name']
-            csv = selected_df_to_download.to_csv(index=False).encode('utf-8')
+            # Aplicar desplazamiento a cero si corresponde
+            df_to_download = selected_df_to_download.copy()
+            if st.session_state.get('chk_start_zero', False):
+                x_col_dl = df_to_download.columns[0]
+                df_to_download[x_col_dl] = df_to_download[x_col_dl] - df_to_download[x_col_dl].min()
+            # redondear según decimales
+            dec = st.session_state.get('decimals', 2)
+            df_to_download = df_to_download.round(dec)
+            csv = df_to_download.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="Descargar dataset seleccionado como CSV",
+                label="Descargar datos seleccionados como CSV",
                 data=csv,
                 file_name=download_name,
                 mime='text/csv'
             )
-            # Remove 'selected_data_df' from session state after download
-            del st.session_state['selected_data_df']
                 
-            
-   
+                
+                   
 if __name__ == "__main__":
     app = DataExplorer()
