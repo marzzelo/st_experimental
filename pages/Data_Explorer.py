@@ -120,6 +120,12 @@ class DataExplorer:
             # st.experimental_rerun() # Comentado para evitar bucles si no se maneja con cuidado
 
         st.write(f"Usando la columna '{x_col}' como eje X")
+        x_col = st.selectbox(
+            "Selecciona la columna para el eje X:",
+            options=data.columns,
+            index=0,
+            key="x_col_select"
+        )
         
         x_lower_val = ss_get('x_lower', float(data[x_col].min()))
         x_upper_val = ss_get('x_upper', float(data[x_col].max()))
