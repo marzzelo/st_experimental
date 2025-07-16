@@ -93,10 +93,10 @@ class TractionCalculator:
             st.markdown('<p>Ingrese los datos solicitados para calcular la fuerza de tracción de ensayo.</p>',
                         unsafe_allow_html=True)
             with st.form(key='form_kc390'):
-                ensayo_nombre = st.text_input("Nombre del Ensayo", value="")
+                ensayo_nombre = st.text_input("Nombre del Ensayo", value="PROB CADM LHE-FRAG")
                 num_requerimiento = st.text_input("Número de requerimiento", value="")
                 tipo_tratamiento = st.selectbox("Tipo de tratamiento", ["CADMIO", "CROMO"], index=0)
-                tipo_ensayo = st.selectbox("Tipo de ensayo", ["200hs", "ISL (Incremental Step Load)"], index=0)
+                tipo_ensayo = st.selectbox("Tipo de ensayo", ["200hs Tracción Cte.", "ISL (Incremental Step Load)"], index=0)
                 col1, col2 = st.columns(2)
 
                 d = col1.number_input(label="Diámetro de la probeta en la entalla", min_value=0.0,
