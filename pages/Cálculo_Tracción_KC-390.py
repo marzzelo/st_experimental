@@ -93,6 +93,10 @@ class TractionCalculator:
             st.markdown('<p>Ingrese los datos solicitados para calcular la fuerza de tracción de ensayo.</p>',
                         unsafe_allow_html=True)
             with st.form(key='form_kc390'):
+                ensayo_nombre = st.text_input("Nombre del Ensayo", value="")
+                num_requerimiento = st.text_input("Número de requerimiento", value="")
+                tipo_tratamiento = st.selectbox("Tipo de tratamiento", ["CADMIO", "CROMO"], index=0)
+                tipo_ensayo = st.selectbox("Tipo de ensayo", ["200hs", "ISL (Incremental Step Load)"], index=0)
                 col1, col2 = st.columns(2)
 
                 d = col1.number_input(label="Diámetro de la probeta en la entalla", min_value=0.0,
@@ -135,14 +139,17 @@ class TractionCalculator:
                     
                     st.session_state.results = {
                         'CARGA DE PRUEBA, :blue[$F$]': [f'{traction_force:.2f}', 'kgf'],
-                        
                         '\nCARGA DE PRUEBA, :blue[$F$]': [f'{traction_force_dan:.2f}', 'daN'],
                         'LÍMITE INFERIOR (0.9)F, :blue[$F_l$]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
                         'LÍMITE SUPERIOR (1.1)F, :blue[$F_u$]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN, :blue[$\\sigma_R$]': [f'{cr:.2f}', 'kgf/mm²'],
                         'DUREZA ROCKWELL, :blue[**HRC**]': [f'{rk:.2f}', ''],
                         'Diámetro en entalla, :blue[$\\phi_0$]': [f'{d:.2f}', 'mm'],
-                        'Sección inicial de entalla, :blue[$S_0$]': [f'{s:.2f}', 'mm²']
+                        'Sección inicial de entalla, :blue[$S_0$]': [f'{s:.2f}', 'mm²'],
+                        'NOMBRE ENSAYO': [ensayo_nombre, ''],
+                        'NÚMERO DE REQUERIMIENTO': [num_requerimiento, ''],
+                        'TIPO DE TRATAMIENTO': [tipo_tratamiento, ''],
+                        'TIPO DE ENSAYO': [tipo_ensayo, '']
                     }
                     st.rerun()
 
@@ -225,8 +232,19 @@ class TractionCalculator:
 
         # Título
         pdf.set_font("Arial", 'B', 14)
-        pdf.cell(0, 10, txt="Resultados Cálculo de Tracción", ln=1, align='C')
+        pdf.cell(0, 10, txt="Ensayo de Tracción para probetas de Fragilización por Hidrógeno", ln=1, align='C')
         pdf.ln(10)
+        # Datos generales del ensayo
+        generales = [
+            ("Nombre del Ensayo", results.get('NOMBRE ENSAYO', ["",""])[0]),
+            ("Número de requerimiento", results.get('NÚMERO DE REQUERIMIENTO', ["",""])[0]),
+            ("Tipo de tratamiento", results.get('TIPO DE TRATAMIENTO', ["",""])[0]),
+            ("Tipo de ensayo", results.get('TIPO DE ENSAYO', ["",""])[0])
+        ]
+        pdf.set_font("Arial", '', 12)
+        for label, valor in generales:
+            pdf.cell(0, 8, f"{label}: {valor}", ln=1)
+        pdf.ln(5)
 
         # Encabezado de tabla
         pdf.set_font("Arial", 'B', 12)
