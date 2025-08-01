@@ -134,14 +134,18 @@ class TractionCalculator:
                         print(f'cr: {cr}')
 
                     # cr = self.rk_cr_table.loc[idx, 'CR']
-                    traction_force = s * cr * 0.75  # kgf
-                    traction_force_dan = traction_force * 9.81 / 10  # daN
+                    break_force = s * cr
+                    break_force_dan = break_force * 9.81 / 10
+                    traction_force = break_force * 0.75  # kgf
+                    traction_force_dan = break_force_dan * 0.75  # daN
                     
                     st.session_state.results = {
                         'CARGA DE PRUEBA, :blue[$F$]': [f'{traction_force:.2f}', 'kgf'],
                         '\nCARGA DE PRUEBA, :blue[$F$]': [f'{traction_force_dan:.2f}', 'daN'],
-                        'LÍMITE INFERIOR (0.9)F, :blue[$F_l$]': [f'{traction_force_dan * 0.9:.2f}', 'daN'],
-                        'LÍMITE SUPERIOR (1.1)F, :blue[$F_u$]': [f'{traction_force_dan * 1.1:.2f}', 'daN'],
+                        'FUERZA DE ROTURA': [f'{break_force:.2f}', 'kgf'],
+                        'FUERZA DE ROTURA (daN)': [f'{break_force_dan:.2f}', 'daN'],
+                        'LÍMITE INFERIOR (0.95)F, :blue[$F_l$]': [f'{traction_force_dan * 0.95:.2f}', 'daN'],
+                        'LÍMITE SUPERIOR (1.05)F, :blue[$F_u$]': [f'{traction_force_dan * 1.05:.2f}', 'daN'],
                         'RESISTENCIA TRACCIÓN, :blue[$\\sigma_R$]': [f'{cr:.2f}', 'kgf/mm²'],
                         'DUREZA ROCKWELL, :blue[**HRC**]': [f'{rk:.2f}', ''],
                         'Diámetro en entalla, :blue[$\\phi_0$]': [f'{d:.2f}', 'mm'],
